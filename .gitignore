@@ -1,0 +1,44 @@
+# Node (Frontend)
+node_modules/
+.next/
+out/
+dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.env
+.env.local
+
+# Python (Backend)
+__pycache__/
+*.py[cod]
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+*.egg-info/
+*.log
+*.pid
+instance/
+.pytest_cache/
+.mypy_cache/
+.env
+.venv/
+venv/
+ENV/
+env/
+Pipfile.lock
+requirements.txt~
+
+# OS / IDE / Misc
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Docker
+*.pid
+*.seed
+docker-compose.override.yml

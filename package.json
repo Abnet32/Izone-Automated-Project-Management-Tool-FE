@@ -1,0 +1,21 @@
+{
+  "name": "Izone-Automated-Project-Management-Tool-FE",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/Izone-hub/Izone-Automated-Project-Management-Tool-FE.git",
+  "author": "bir-dv <brukjoseph@gmail.com>",
+  "license": "MIT",
+    "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:frontend": "yarn workspace frontend dev",
+    "dev:backend": "yarn workspace backend start",
+    "dev": "concurrently \"yarn dev:frontend\" \"yarn dev:backend\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.0.1"
+  }
+}
