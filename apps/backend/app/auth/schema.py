@@ -1,9 +1,11 @@
 # app/auth/schemas.py
 from pydantic import BaseModel, EmailStr
 from typing import Optional
+import uuid
 
 class UserCreate(BaseModel):
     email: EmailStr
+    full_name: Optional[str] = None
     password: str
 
 class UserLogin(BaseModel):
@@ -11,8 +13,9 @@ class UserLogin(BaseModel):
     password: str
 
 class User(BaseModel):
-    id: int
+    id: str
     email: EmailStr
+    full_name: Optional[str] = None
     is_active: bool = True
 
     class Config:
