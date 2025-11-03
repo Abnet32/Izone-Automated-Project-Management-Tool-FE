@@ -48,7 +48,7 @@ export default function SignupPage() {
                <div className="relative w-full h-full flex items-center justify-center">
                
                  <Image
-                    src="/login.png.jpg" 
+                    src="/mask-group.png" 
                     alt="Login Illustration"
                     fill
                     className="object-cover rounded-3xl"
