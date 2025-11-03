@@ -1,75 +1,64 @@
 'use client';
 
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
+import { signupSchema, type SignupFormData } from "@/lib/validations/auth";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function SignupPage() {
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [passwordError, setPasswordError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const { signup, isLoading } = useAuth();
 
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<SignupFormData>({
+    resolver: zodResolver(signupSchema),
+  });
 
-  const validatePassword = (password: string) => {
-    const regex = /^(?=.*[A-Z])(?=.*[0-9!@#$%^&*()_+{}\[\]:;<>,.?~\-]).{8,}$/;
-    return regex.test(password);
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-
-    if (!validatePassword(password)) {
-      setPasswordError("Password must be at least 8 characters, include one uppercase letter, and one number or special character.");
-      return;
-    } else {
-      setPasswordError("");
+  const onSubmit = async (data: SignupFormData) => {
+    try {
+      const { confirmPassword, ...signupData } = data;
+      await signup(signupData);
+    } catch (error) {
+      // Error is handled by useAuth hook
     }
-
-  
-    if (password !== confirmPassword) {
-      alert("Passwords do not match!");
-      return;
-    }
-
-    console.log({ firstName, lastName, email, password, confirmPassword });
-    
   };
 
   return (
-         <div className="min-h-screen grid md:grid-cols-2 gap-x-0">
-             <div className="flex items-center justify-center p-2">
-               <div className="relative w-full h-full flex items-center justify-center">
-               
-                 <Image
-                    src="/mask-group.png" 
-                    alt="Login Illustration"
-                    fill
-                    className="object-cover rounded-3xl"
-                    priority
-                  />
-               </div>
-             </div>
-          <motion.div
-           initial={{ opacity: 0, y: 20 }}
-           animate={{ opacity: 1, y: 0 }}
-           transition={{ duration: 0.5 }}
-           className="flex items-center justify-center p-4 md:p-4"
-          >
+    <div className="grid md:grid-cols-2 gap-0 min-h-screen">
+      {/* Image Section */}
+      <div className="hidden md:flex items-center justify-center p-4">
+        <div className="relative w-full h-full min-h-[600px] rounded-3xl overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-100">
+          <Image
+            src="/mask-group.png" 
+            alt="Signup Illustration"
+            fill
+            className="object-cover"
+            priority
+            sizes="(max-width: 768px) 0vw, 50vw"
+          />
+        </div>
+      </div>
+      
+      {/* Form Section */}
+      <div className="flex items-center justify-center p-4 md:p-8">
         <div className="bg-white rounded-2xl p-8 space-y-6 w-full max-w-lg">
           <div className="text-center space-y-2">
             <h1 className="text-3xl font-bold tracking-tight">Create your Account</h1>
             <p className="text-muted-foreground">Sign up to get started</p>
           </div>
 
-          <form className="space-y-4" onSubmit={handleSubmit}>
-            
+          <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="firstName">First Name</Label>
@@ -77,10 +66,12 @@ export default function SignupPage() {
                   id="firstName"
                   type="text"
                   placeholder="First Name"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  required
+                  {...register("firstName")}
+                  aria-invalid={errors.firstName ? "true" : "false"}
                 />
+                {errors.firstName && (
+                  <p className="text-sm text-red-500">{errors.firstName.message}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -88,67 +79,99 @@ export default function SignupPage() {
                 <Input
                   id="lastName"
                   type="text"
-                  placeholder="LastName"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  required
+                  placeholder="Last Name"
+                  {...register("lastName")}
+                  aria-invalid={errors.lastName ? "true" : "false"}
                 />
+                {errors.lastName && (
+                  <p className="text-sm text-red-500">{errors.lastName.message}</p>
+                )}
               </div>
             </div>
 
-          
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
                 placeholder="test@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
+                {...register("email")}
+                aria-invalid={errors.email ? "true" : "false"}
               />
-            </div>
-
-           
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-              {passwordError && (
-                <p className="text-red-500 text-sm">{passwordError}</p>
+              {errors.email && (
+                <p className="text-sm text-red-500">{errors.email.message}</p>
               )}
             </div>
 
-              <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-              />
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Enter your password"
+                  {...register("password")}
+                  aria-invalid={errors.password ? "true" : "false"}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <Eye size={16} /> : <EyeOff size={16} />}
+                </Button>
+              </div>
+              {errors.password && (
+                <p className="text-sm text-red-500">{errors.password.message}</p>
+              )}
             </div>
 
-           
-            <Button type="submit" className="w-full">
-              Sign Up
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <div className="relative">
+                <Input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="Confirm your password"
+                  {...register("confirmPassword")}
+                  aria-invalid={errors.confirmPassword ? "true" : "false"}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                >
+                  {showConfirmPassword ? <Eye size={16} /> : <EyeOff size={16} />}
+                </Button>
+              </div>
+              {errors.confirmPassword && (
+                <p className="text-sm text-red-500">{errors.confirmPassword.message}</p>
+              )}
+            </div>
+
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? "Creating account..." : "Sign Up"}
             </Button>
           </form>
 
           <div className="text-center text-sm mt-4">
             Already have an account?{" "}
-            <a href="/login" className="text-blue-600 hover:underline">
+            <Link 
+              href="/login" 
+              className="text-blue-600 hover:text-blue-700 hover:underline transition-colors"
+              prefetch={true}
+            >
               Login
-            </a>
+            </Link>
           </div>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }
