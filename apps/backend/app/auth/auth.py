@@ -11,12 +11,12 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
 
 @router.post("/register", response_model=schema.User)
 def register_user(user: schema.UserCreate, db: Session = Depends(get_db)):
-    existing_user = db.query(models.User).filter(models.User.email == user.email).first()
+    existing_user = db.query(User).filter(User.email == user.email).first()
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
 
     hashed_pw = hash_password(user.password)
-    new_user = models.User(
+    new_user = User(
         id=str(uuid.uuid4()),
         email=user.email,
         full_name=user.full_name,
@@ -30,7 +30,7 @@ def register_user(user: schema.UserCreate, db: Session = Depends(get_db)):
 
 @router.post("/login", response_model=schema.Token)
 def login(user: schema.UserLogin, db: Session = Depends(get_db)):
-    db_user = db.query(models.User).filter(models.User.email == user.email).first()
+    db_user = db.query(User).filter(User.email == user.email).first()
     if not db_user or not verify_password(user.password, db_user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
