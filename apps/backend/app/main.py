@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.auth.auth import router as auth_router
 from app.db.session import engine
 from app.db.base import Base
+from app.workspaces import api as organization_router
 
 
 # Create all database tables
@@ -12,6 +13,7 @@ app = FastAPI()
 
 
 app.include_router(auth_router)
+app.include_router(organization_router.router)
 
 
 origins = [
