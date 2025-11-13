@@ -1,0 +1,41 @@
+import uuid
+import enum
+from sqlalchemy import Column, String, DateTime, ForeignKey, Text, Enum
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
+from app.db.session import Base
+
+
+class WorkspaceRole(str, enum.Enum):
+    owner = "owner"
+    admin = "admin"
+    member = "member"
+    guest = "guest"
+
+
+class Workspace(Base):
+    __tablename__ = "workspaces"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    name = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
+    created_by = Column(String, ForeignKey("users.id"), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    creator = relationship("User", foreign_keys=[created_by])
+    members = relationship("WorkspaceMember", back_populates="workspace", cascade="all, delete-orphan")
+    projects = relationship("Project", back_populates="workspace", cascade="all, delete-orphan")
+
+
+class WorkspaceMember(Base):
+    __tablename__ = "workspace_members"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    workspace_id = Column(String, ForeignKey("workspaces.id"), nullable=False)
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    role = Column(Enum(WorkspaceRole), default=WorkspaceRole.member)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    workspace = relationship("Workspace", back_populates="members")
+    user = relationship("User")
