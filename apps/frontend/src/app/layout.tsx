@@ -2,10 +2,9 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
-import {AppSidebar} from "@/components/AppSidebar";
-import {Navbar} from "@/components/Navbar";
 import {ThemeProvider} from "@/components/providers/ThemeProviders";
-import {SidebarProvider} from "@/components/ui/sidebar";
+
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -37,16 +36,7 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-         
-         <SidebarProvider>
-        <AppSidebar className="bg-white"/>  
-        <main className="flex-1 flex flex-col w-full">
-         <Navbar className="bg-white shadow-md" /> 
-         <div className="flex-1 px-4 py-6"> {children} </div>
-         <div>
-         </div> 
-        </main>
-         </SidebarProvider>
+         {children}
         </ThemeProvider>
         <Toaster />
       </body>
