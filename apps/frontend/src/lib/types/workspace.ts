@@ -1,3 +1,5 @@
+import { Task } from './kanban'; // Import Task from kanban
+
 export interface Workspace {
   id: string;
   name: string;
@@ -33,5 +35,5 @@ export interface Column {
   id: string;
   name: string;
   position: number;
-  tasks: Task[];
+  tasks: Task[]; 
 }

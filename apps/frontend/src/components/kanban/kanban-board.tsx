@@ -4,7 +4,7 @@ import { Column } from './column';
 import { useKanban } from '@/hooks/kanban/use-kanban';
 
 export function KanbanBoard() {
-  const { columns, moveTask } = useKanban();
+  const { columns, moveTask, addTask } = useKanban();
 
   return (
     <div className="flex-1 p-6 bg-gray-50 min-h-screen">
@@ -16,7 +16,7 @@ export function KanbanBoard() {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">🔥Task</h1>
-            <p className="text-gray-600"></p>
+            {/* <p className="text-gray-600"></p> */}
           </div>
         </div>
         
@@ -60,9 +60,13 @@ export function KanbanBoard() {
             key={column.id}
             column={column}
             onTaskMove={(taskId, newStatus) => moveTask(taskId, newStatus)}
+            onTaskAdd={addTask}
           />
         ))}
       </div>
     </div>
   );
 }
+
+export default KanbanBoard;
+
