@@ -9,11 +9,21 @@ interface ColumnProps {
   column: ColumnType;
   onTaskMove: (taskId: string, newStatus: ColumnType['type']) => void;
   onTaskAdd: (taskData: { title: string }, columnType: ColumnType['type']) => void;
+  onTaskUpdate: (updatedTask: Task) => void; // ✅ Added this
+  onTaskDelete: (taskId: string) => void; // ✅ Added this
   onColumnEdit?: (columnId: string, updates: Partial<ColumnType>) => void;
   onColumnDelete?: (columnId: string) => void;
 }
 
-export function Column({ column, onTaskMove, onTaskAdd, onColumnEdit, onColumnDelete }: ColumnProps) {
+export function Column({ 
+  column, 
+  onTaskMove, 
+  onTaskAdd, 
+  onTaskUpdate, // ✅ Added this
+  onTaskDelete, // ✅ Added this
+  onColumnEdit, 
+  onColumnDelete 
+}: ColumnProps) {
   const [isAddingTask, setIsAddingTask] = useState(false);
   const [showColumnMenu, setShowColumnMenu] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState('');
@@ -153,9 +163,8 @@ export function Column({ column, onTaskMove, onTaskAdd, onColumnEdit, onColumnDe
               key={task.id}
               task={task}
               onStatusChange={(newStatus) => onTaskMove(task.id, newStatus)}
-              onTaskUpdate={(updatedTask) => {
-                // Handle task updates
-              }}
+              onTaskUpdate={onTaskUpdate} // ✅ Updated this
+              onTaskDelete={onTaskDelete} // ✅ Updated this
             />
           ))}
         </div>
@@ -379,7 +388,7 @@ export default Column;
 //         <div className="p-3 pt-0">
 //           {/* ADD CARD FORM - APPEARS AT BOTTOM WHEN PLUS IS CLICKED */}
 //           {isAddingTask && (
-//             <div className="bg-white rounded-lg shadow-sm p-3 space-y-3">
+//             <div className="bg-white rounded-lg shadow-sm p-3 space-y-3 mb-2">
 //               {/* Textarea - Exactly like Trello */}
 //               <textarea
 //                 ref={textareaRef}
@@ -409,6 +418,17 @@ export default Column;
 //               </div>
 //             </div>
 //           )}
+
+//           {/* EXTRA "ADD A CARD" BUTTON - SHOWS WHEN COLUMN IS EMPTY (TRELLO STYLE) */}
+//           {!isAddingTask && column.tasks.length === 0 && (
+//             <button
+//               onClick={handlePlusClick}
+//               className="w-full flex items-center gap-2 p-3 text-gray-600 hover:bg-gray-200 rounded transition-colors group"
+//             >
+//               <Plus className="w-4 h-4 text-gray-500 group-hover:text-gray-700" />
+//               <span className="text-sm">Add a card</span>
+//             </button>
+//           )}
 //         </div>
 //       </div>
 //     </div>
@@ -416,3 +436,4 @@ export default Column;
 // }
 
 // export default Column;
+
