@@ -1,21 +1,16 @@
-import { SidebarInset } from "@/components/ui/sidebar";
+import { WorkspaceManager } from "@/components/workspaces/workspace-manager";
 
-export default function Page() {
+export default function DashboardPage() {
   return (
-    <SidebarInset>
-      <div className="flex flex-1 flex-col">
-        <div className="@container/main flex flex-1 flex-col gap-2">
-          <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-            <div className="px-4 lg:px-6">
-              {/* dashboard content */}
-            </div>
-          </div>
-        </div>
+    <div className="flex-1 space-y-6">
+      {/* Header */}
+      <div className="px-6 pt-6">
+        <h1 className="text-3xl font-bold text-gray-900">🔥 Task</h1>
+        <p className="text-gray-600"></p>
       </div>
-    </SidebarInset>
+
+      {/* Workspace Manager */}
+      <WorkspaceManager />
+    </div>
   );
 }
-
-
-  
-
