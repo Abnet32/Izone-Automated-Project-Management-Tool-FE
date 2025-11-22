@@ -13,17 +13,6 @@ import {
 import { useRouter } from 'next/navigation';
 import { useWorkspaces } from '@/hooks/workspaces/use-workspaces';
 
-interface Workspace {
-  id: string;
-  name: string;
-  icon: string;
-  color: string;
-}
-
-interface WorkspaceItemProps {
-  workspace: Workspace;
-}
-
 const workspaceMenuItems = [
   { icon: Layout, label: 'Boards', href: '/boards' },
   { icon: Users, label: 'Members', href: '/members' },
@@ -31,59 +20,52 @@ const workspaceMenuItems = [
   { icon: CreditCard, label: 'Billing', href: '/billing' },
 ];
 
-export const WorkspaceItem = ({ workspace }: WorkspaceItemProps) => {
+export const WorkspaceItem = ({ workspace }) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const router = useRouter();
-  const { setSelectedWorkspace } = useWorkspaces();
+  const { setSelectedWorkspace, workspaces } = useWorkspaces();
 
   const handleWorkspaceClick = () => {
-    // Find the full workspace data from your hook
-    const { workspaces } = useWorkspaces();
     const fullWorkspace = workspaces.find(w => w.id === workspace.id);
-    if (fullWorkspace) {
-      setSelectedWorkspace(fullWorkspace);
-    }
+    if (fullWorkspace) setSelectedWorkspace(fullWorkspace);
+
     setIsExpanded(!isExpanded);
   };
 
   const handleMenuClick = (href: string) => {
-    // Navigate to the specific page with workspace context
     router.push(`${href}?workspace=${workspace.id}`);
   };
 
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <SidebarMenuButton 
+        <SidebarMenuButton
           onClick={handleWorkspaceClick}
           className="flex items-center justify-between w-full"
         >
-          <div className="flex items-center gap-2 flex-1">
+          <div className="flex items-center gap-2">
             <div 
-              className={`w-6 h-6 rounded flex items-center justify-center text-xs font-bold text-white`}
-              style={{ backgroundColor: workspace.color.includes('#') ? workspace.color : '#6B7280' }}
+              className="w-6 h-6 rounded text-white flex items-center justify-center text-sm font-bold"
+              style={{ backgroundColor: workspace.color || '#6B7280' }}
             >
               {workspace.icon}
             </div>
-            <span className="font-medium text-sm truncate">{workspace.name}</span>
+            <span>{workspace.name}</span>
           </div>
-          {isExpanded ? (
-            <ChevronDown className="h-4 w-4 flex-shrink-0" />
-          ) : (
-            <ChevronRight className="h-4 w-4 flex-shrink-0" />
-          )}
+
+          {isExpanded ? <ChevronDown /> : <ChevronRight />}
         </SidebarMenuButton>
-        
+
         {isExpanded && (
           <SidebarMenuSub>
             {workspaceMenuItems.map((item) => (
               <SidebarMenuSubItem key={item.label}>
-                <SidebarMenuSubButton 
+                <SidebarMenuSubButton
                   onClick={() => handleMenuClick(item.href)}
-                  className="flex items-center gap-2 w-full"
+                  className="flex items-center gap-2"
                 >
                   <item.icon className="h-4 w-4" />
-                  <span className="text-sm">{item.label}</span>
+                  <span>{item.label}</span>
                 </SidebarMenuSubButton>
               </SidebarMenuSubItem>
             ))}
@@ -93,6 +75,10 @@ export const WorkspaceItem = ({ workspace }: WorkspaceItemProps) => {
     </SidebarMenu>
   );
 };
+
+
+
+
 
 
 // 'use client';
@@ -108,6 +94,7 @@ export const WorkspaceItem = ({ workspace }: WorkspaceItemProps) => {
 //   SidebarMenuSubButton 
 // } from '@/components/ui/sidebar';
 // import { useRouter } from 'next/navigation';
+// import { useWorkspaces } from '@/hooks/workspaces/use-workspaces';
 
 // interface Workspace {
 //   id: string;
@@ -130,8 +117,15 @@ export const WorkspaceItem = ({ workspace }: WorkspaceItemProps) => {
 // export const WorkspaceItem = ({ workspace }: WorkspaceItemProps) => {
 //   const [isExpanded, setIsExpanded] = useState(true);
 //   const router = useRouter();
+//   const { setSelectedWorkspace } = useWorkspaces();
 
 //   const handleWorkspaceClick = () => {
+//     // Find the full workspace data from your hook
+//     const { workspaces } = useWorkspaces();
+//     const fullWorkspace = workspaces.find(w => w.id === workspace.id);
+//     if (fullWorkspace) {
+//       setSelectedWorkspace(fullWorkspace);
+//     }
 //     setIsExpanded(!isExpanded);
 //   };
 
@@ -149,7 +143,8 @@ export const WorkspaceItem = ({ workspace }: WorkspaceItemProps) => {
 //         >
 //           <div className="flex items-center gap-2 flex-1">
 //             <div 
-//               className={`w-6 h-6 rounded flex items-center justify-center text-xs font-bold text-white ${workspace.color}`}
+//               className={`w-6 h-6 rounded flex items-center justify-center text-xs font-bold text-white`}
+//               style={{ backgroundColor: workspace.color.includes('#') ? workspace.color : '#6B7280' }}
 //             >
 //               {workspace.icon}
 //             </div>
@@ -181,4 +176,5 @@ export const WorkspaceItem = ({ workspace }: WorkspaceItemProps) => {
 //     </SidebarMenu>
 //   );
 // };
+
 

@@ -1,86 +1,249 @@
-import { useState } from 'react';
-import { Workspace, Board, Member } from '@/lib/types/workspace';
+// hooks/workspaces/use-workspaces.ts
+'use client';
 
-// Mock data with sample workspaces
-const mockWorkspaces: Workspace[] = [
+import { useState, useEffect } from 'react';
+
+// Types that match your component structure
+export interface Member {
+  id: string;
+  name: string;
+  email: string;
+  avatar: string;
+  role: 'owner' | 'member';
+}
+
+export interface Board {
+  id: string;
+  name: string;
+  description: string;
+  workspaceId: string;
+  members: Member[];
+  lists: List[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface List {
+  id: string;
+  title: string;
+  cards: Card[];
+}
+
+export interface Card {
+  id: string;
+  title: string;
+  description?: string;
+}
+
+export interface Workspace {
+  id: string;
+  name: string;
+  description: string;
+  color: string;
+  emoji: string;
+  members: Member[];
+  boards: Board[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Mock data - Only Web Development workspace
+const initialWorkspaces: Workspace[] = [
   {
     id: '1',
     name: 'Web Development',
-    description: 'All website development projects and tasks',
-    emoji: '🚀',
+    description: 'Full-stack web development projects and tasks',
     color: '#3B82F6',
+    emoji: '💻',
     members: [
-      { id: '1', name: 'John Doe', email: 'john@example.com', avatar: '', role: 'admin' },
-      { id: '2', name: 'Jane Smith', email: 'jane@example.com', avatar: '', role: 'member' },
+      { 
+        id: '1', 
+        name: 'John Doe', 
+        email: 'john@example.com', 
+        avatar: '', 
+        role: 'owner' 
+      },
+      { 
+        id: '2', 
+        name: 'Jane Smith', 
+        email: 'jane@example.com', 
+        avatar: '', 
+        role: 'member' 
+      },
+      { 
+        id: '3', 
+        name: 'Mike Johnson', 
+        email: 'mike@example.com', 
+        avatar: '', 
+        role: 'member' 
+      },
     ],
     boards: [
       {
         id: '1',
         name: 'Frontend Development',
-        description: 'React and Next.js development',
+        description: 'React, Next.js and UI components',
         workspaceId: '1',
-        columns: [
-          { id: '1', name: 'Backlog', position: 0, tasks: [] },
-          { id: '2', name: 'To Do', position: 1, tasks: [] },
-          { id: '3', name: 'In Progress', position: 2, tasks: [] },
-          { id: '4', name: 'Review', position: 3, tasks: [] },
-          { id: '5', name: 'Done', position: 4, tasks: [] },
+        members: [],
+        lists: [
+          { 
+            id: '1', 
+            title: 'To Do', 
+            cards: [
+              { id: '1', title: 'Create responsive navbar' },
+              { id: '2', title: 'Implement dark mode' },
+            ] 
+          },
+          { 
+            id: '2', 
+            title: 'In Progress', 
+            cards: [
+              { id: '3', title: 'User dashboard components' },
+            ] 
+          },
+          { 
+            id: '3', 
+            title: 'Done', 
+            cards: [
+              { id: '4', title: 'Project setup and routing' },
+            ] 
+          },
         ],
-        members: [
-          { id: '1', name: 'John Doe', email: 'john@example.com', avatar: '', role: 'admin' },
-          { id: '2', name: 'Jane Smith', email: 'jane@example.com', avatar: '', role: 'member' },
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: '2',
+        name: 'Backend API',
+        description: 'Server, database and API endpoints',
+        workspaceId: '1',
+        members: [],
+        lists: [
+          { 
+            id: '1', 
+            title: 'Planning', 
+            cards: [
+              { id: '1', title: 'Design database schema' },
+              { id: '2', title: 'Plan API endpoints' },
+            ] 
+          },
+          { 
+            id: '2', 
+            title: 'Development', 
+            cards: [
+              { id: '3', title: 'User authentication' },
+            ] 
+          },
         ],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      }
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: '3',
+        name: 'DevOps & Deployment',
+        description: 'CI/CD, hosting and deployment pipeline',
+        workspaceId: '1',
+        members: [],
+        lists: [
+          { 
+            id: '1', 
+            title: 'Setup', 
+            cards: [
+              { id: '1', title: 'Configure Vercel deployment' },
+              { id: '2', title: 'Setup environment variables' },
+            ] 
+          },
+        ],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
     ],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: '2',
-    name: 'Marketing',
-    description: 'Marketing campaigns and content creation',
-    emoji: '📈',
-    color: '#10B981',
-    members: [
-      { id: '3', name: 'Mike Johnson', email: 'mike@example.com', avatar: '', role: 'admin' },
-      { id: '4', name: 'Sarah Wilson', email: 'sarah@example.com', avatar: '', role: 'member' },
-    ],
-    boards: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
   },
 ];
 
 export function useWorkspaces() {
-  const [workspaces, setWorkspaces] = useState<Workspace[]>(mockWorkspaces);
+  const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [selectedWorkspace, setSelectedWorkspace] = useState<Workspace | null>(null);
-  const [selectedBoard, setSelectedBoard] = useState<Board | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Workspace CRUD Operations
+  useEffect(() => {
+    // Simulate API call
+    const loadWorkspaces = async () => {
+      setIsLoading(true);
+      try {
+        // In a real app, this would be an API call
+        await new Promise(resolve => setTimeout(resolve, 500));
+        setWorkspaces(initialWorkspaces);
+      } catch (error) {
+        console.error('Failed to load workspaces:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadWorkspaces();
+  }, []);
+
   const createWorkspace = (workspaceData: Omit<Workspace, 'id' | 'createdAt' | 'updatedAt' | 'boards'>) => {
     const newWorkspace: Workspace = {
       ...workspaceData,
       id: Date.now().toString(),
       boards: [],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
+    
     setWorkspaces(prev => [...prev, newWorkspace]);
     return newWorkspace;
+  };
+
+  const createBoard = (workspaceId: string, boardData: Omit<Board, 'id' | 'createdAt' | 'updatedAt' | 'lists' | 'members'>) => {
+    const newBoard: Board = {
+      ...boardData,
+      id: Date.now().toString(),
+      workspaceId,
+      members: [],
+      lists: [
+        { id: '1', title: 'To Do', cards: [] },
+        { id: '2', title: 'In Progress', cards: [] },
+        { id: '3', title: 'Done', cards: [] },
+      ],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    setWorkspaces(prev => prev.map(ws => 
+      ws.id === workspaceId 
+        ? { ...ws, boards: [...ws.boards, newBoard] }
+        : ws
+    ));
+    
+    return newBoard;
+  };
+
+  const updateBoard = (workspaceId: string, boardId: string, updates: Partial<Board>) => {
+    setWorkspaces(prev => prev.map(ws => 
+      ws.id === workspaceId 
+        ? { 
+            ...ws, 
+            boards: ws.boards.map(b => 
+              b.id === boardId 
+                ? { ...b, ...updates, updatedAt: new Date() }
+                : b
+            ) 
+          }
+        : ws
+    ));
   };
 
   const updateWorkspace = (workspaceId: string, updates: Partial<Workspace>) => {
     setWorkspaces(prev => prev.map(workspace => 
       workspace.id === workspaceId 
-        ? { ...workspace, ...updates, updatedAt: new Date().toISOString() }
+        ? { ...workspace, ...updates, updatedAt: new Date() }
         : workspace
     ));
-    
-    if (selectedWorkspace?.id === workspaceId) {
-      setSelectedWorkspace(prev => prev ? { ...prev, ...updates, updatedAt: new Date().toISOString() } : null);
-    }
   };
 
   const deleteWorkspace = (workspaceId: string) => {
@@ -90,134 +253,49 @@ export function useWorkspaces() {
     }
   };
 
-  // Board CRUD Operations
-  const createBoard = (workspaceId: string, boardData: Omit<Board, 'id' | 'createdAt' | 'updatedAt' | 'columns'>) => {
-    const newBoard: Board = {
-      ...boardData,
-      id: Date.now().toString(),
-      workspaceId,
-      columns: [
-        { id: '1', name: 'Backlog', position: 0, tasks: [] },
-        { id: '2', name: 'To Do', position: 1, tasks: [] },
-        { id: '3', name: 'In Progress', position: 2, tasks: [] },
-        { id: '4', name: 'Review', position: 3, tasks: [] },
-        { id: '5', name: 'Done', position: 4, tasks: [] },
-      ],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    setWorkspaces(prev => prev.map(workspace => 
-      workspace.id === workspaceId 
-        ? { ...workspace, boards: [...workspace.boards, newBoard] }
-        : workspace
-    ));
-
-    if (selectedWorkspace?.id === workspaceId) {
-      setSelectedWorkspace(prev => prev ? { ...prev, boards: [...prev.boards, newBoard] } : null);
-    }
-
-    return newBoard;
-  };
-
-  const updateBoard = (workspaceId: string, boardId: string, updates: Partial<Board>) => {
-    setWorkspaces(prev => prev.map(workspace => 
-      workspace.id === workspaceId 
-        ? {
-            ...workspace,
-            boards: workspace.boards.map(board =>
-              board.id === boardId
-                ? { ...board, ...updates, updatedAt: new Date().toISOString() }
-                : board
-            )
-          }
-        : workspace
-    ));
-
-    if (selectedBoard?.id === boardId) {
-      setSelectedBoard(prev => prev ? { ...prev, ...updates, updatedAt: new Date().toISOString() } : null);
-    }
-  };
-
   const deleteBoard = (workspaceId: string, boardId: string) => {
     setWorkspaces(prev => prev.map(workspace => 
       workspace.id === workspaceId 
         ? { ...workspace, boards: workspace.boards.filter(board => board.id !== boardId) }
         : workspace
     ));
-
-    if (selectedWorkspace?.id === workspaceId) {
-      setSelectedWorkspace(prev => prev ? { ...prev, boards: prev.boards.filter(board => board.id !== boardId) } : null);
-    }
-
-    if (selectedBoard?.id === boardId) {
-      setSelectedBoard(null);
-    }
   };
 
-  // Member Management
-  const addMemberToWorkspace = (workspaceId: string, member: Member) => {
+  const addMemberToWorkspace = (workspaceId: string, member: Omit<Member, 'id'>) => {
+    const newMember = {
+      ...member,
+      id: Date.now().toString(),
+    };
+
     setWorkspaces(prev => prev.map(workspace => 
       workspace.id === workspaceId 
         ? { 
             ...workspace, 
-            members: [...workspace.members, member],
-            updatedAt: new Date().toISOString()
+            members: [...workspace.members, newMember],
+            updatedAt: new Date()
           }
         : workspace
     ));
-
-    if (selectedWorkspace?.id === workspaceId) {
-      setSelectedWorkspace(prev => prev ? { 
-        ...prev, 
-        members: [...prev.members, member],
-        updatedAt: new Date().toISOString()
-      } : null);
-    }
-  };
-
-  const removeMemberFromWorkspace = (workspaceId: string, memberId: string) => {
-    setWorkspaces(prev => prev.map(workspace => 
-      workspace.id === workspaceId 
-        ? { 
-            ...workspace, 
-            members: workspace.members.filter(m => m.id !== memberId),
-            updatedAt: new Date().toISOString()
-          }
-        : workspace
-    ));
-
-    if (selectedWorkspace?.id === workspaceId) {
-      setSelectedWorkspace(prev => prev ? { 
-        ...prev, 
-        members: prev.members.filter(m => m.id !== memberId),
-        updatedAt: new Date().toISOString()
-      } : null);
-    }
   };
 
   return {
     // State
     workspaces,
     selectedWorkspace,
-    selectedBoard,
+    isLoading,
     
     // Setters
     setSelectedWorkspace,
-    setSelectedBoard,
     
     // Workspace operations
     createWorkspace,
     updateWorkspace,
     deleteWorkspace,
+    addMemberToWorkspace,
     
     // Board operations
     createBoard,
     updateBoard,
     deleteBoard,
-    
-    // Member operations
-    addMemberToWorkspace,
-    removeMemberFromWorkspace,
   };
 }

@@ -1,183 +1,111 @@
 'use client';
 
-import dynamic from 'next/dynamic';
-import { Suspense } from 'react';
-
-// Dynamically import the Kanban board with SSR disabled
-const ClientKanbanBoard = dynamic(() => import('./client-kanban-board'), {
-  ssr: false,
-  loading: () => <KanbanBoardSkeleton />,
-});
-
-// Skeleton loader component
-function KanbanBoardSkeleton() {
-  return (
-    <div className="flex-1 p-6 bg-gray-50 min-h-screen">
-      {/* Skeleton Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-gray-200 rounded-lg animate-pulse"></div>
-          <div className="w-32 h-6 bg-gray-200 rounded animate-pulse"></div>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="w-64 h-10 bg-gray-200 rounded-lg animate-pulse"></div>
-          <div className="flex -space-x-2">
-            {[1, 2, 3, 4].map(i => (
-              <div key={i} className="w-8 h-8 bg-gray-200 rounded-full animate-pulse"></div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Skeleton Columns */}
-      <div className="flex gap-6 overflow-x-auto pb-6">
-        {[1, 2, 3, 4, 5].map(i => (
-          <div key={i} className="flex-shrink-0 w-80">
-            <div className="bg-gray-200 p-4 rounded-t-lg animate-pulse h-12"></div>
-            <div className="bg-gray-100 rounded-b-lg min-h-96 p-3 space-y-3">
-              {[1, 2, 3].map(j => (
-                <div key={j} className="bg-white rounded-lg p-3 h-20 animate-pulse"></div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
+import { useState, useEffect } from 'react';
+import { ClientKanbanBoard } from './client-kanban-board';
+import { OnboardingWizard } from '../onboarding/onboarding-wizard';
+import { Rocket } from 'lucide-react';
+import { useWorkspace } from '@/hooks/kanban/use-workspace';
 
 export function KanbanBoard() {
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const { currentBoard, isLoading } = useWorkspace();
+
+  // Show onboarding if no board exists
+  useEffect(() => {
+    if (!isLoading && !currentBoard) {
+      setShowOnboarding(true);
+    }
+  }, [isLoading, currentBoard]);
+
+  const handleOnboardingComplete = () => {
+    setShowOnboarding(false);
+  };
+
+  const handleReopenOnboarding = () => {
+    setShowOnboarding(true);
+  };
+
   return (
-    <Suspense fallback={<KanbanBoardSkeleton />}>
+    <>
+      {showOnboarding && (
+        <OnboardingWizard 
+          isOpen={showOnboarding}
+          onClose={() => setShowOnboarding(false)}
+          onComplete={handleOnboardingComplete}
+        />
+      )}
+      
       <ClientKanbanBoard />
-    </Suspense>
+      
+      {/* Floating help button to reopen onboarding */}
+      {!showOnboarding && currentBoard && (
+        <button
+          onClick={handleReopenOnboarding}
+          className="fixed bottom-6 right-6 bg-blue-600 text-white p-4 rounded-full shadow-lg hover:bg-blue-700 transition-colors z-40"
+          title="Open tutorial"
+        >
+          <Rocket className="w-6 h-6" />
+        </button>
+      )}
+    </>
   );
 }
 
 export default KanbanBoard;
+
 // 'use client';
 
-// import { Column } from './column';
-// import { useKanban } from '@/hooks/kanban/use-kanban';
-// import {
-//   DndContext,
-//   closestCenter,
-//   KeyboardSensor,
-//   PointerSensor,
-//   useSensor,
-//   useSensors,
-//   DragOverlay,
-// } from '@dnd-kit/core';
-// import {
-//   SortableContext,
-//   horizontalListSortingStrategy,
-// } from '@dnd-kit/sortable';
+// import dynamic from 'next/dynamic';
+// import { Suspense } from 'react';
 
-// export function KanbanBoard() {
-//   const { 
-//     columns, 
-//     moveTask, 
-//     addTask, 
-//     updateTask, 
-//     deleteTask,
-//     activeTask,
-//     handleDragStart,
-//     handleDragEnd
-//   } = useKanban();
+// // Dynamically import the Kanban board with SSR disabled
+// const ClientKanbanBoard = dynamic(() => import('./client-kanban-board'), {
+//   ssr: false,
+//   loading: () => <KanbanBoardSkeleton />,
+// });
 
-//   const sensors = useSensors(
-//     useSensor(PointerSensor),
-//     useSensor(KeyboardSensor)
-//   );
-
+// // Skeleton loader component
+// function KanbanBoardSkeleton() {
 //   return (
-//     <DndContext
-//       sensors={sensors}
-//       collisionDetection={closestCenter}
-//       onDragStart={({ active }) => {
-//         const task = columns
-//           .flatMap(col => col.tasks)
-//           .find(t => t.id === active.id);
-//         if (task) handleDragStart(task);
-//       }}
-//       onDragEnd={handleDragEnd}
-//     >
-//       <div className="flex-1 p-6 bg-gray-50 min-h-screen">
-//         {/* Board Header - Exact match from your image */}
-//         <div className="flex items-center justify-between mb-6">
-//           <div className="flex items-center gap-3">
-//             <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
-//               {/* <span className="text-lg"></span> */}
-//             </div>
-//             <div>
-//               <h1 className="text-2xl font-bold text-gray-900">🔥Task</h1>
-//               {/* <p className="text-gray-600"></p> */}
-//             </div>
-//           </div>
-          
-//           <div className="flex items-center gap-4">
-//             {/* Search Bar */}
-//             <div className="relative">
-//               <input
-//                 type="text"
-//                 placeholder="Search anything..."
-//                 className="w-64 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-//               />
-//               <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-//                 <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-//                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-//                 </svg>
-//               </div>
-//             </div>
-            
-//             {/* Team Avatars - Exact match from your image */}
-//             <div className="flex items-center -space-x-2">
-//               <div className="w-8 h-8 bg-blue-500 rounded-full border-2 border-white flex items-center justify-center text-xs font-medium text-white">
-//                 JD
-//               </div>
-//               <div className="w-8 h-8 bg-green-500 rounded-full border-2 border-white flex items-center justify-center text-xs font-medium text-white">
-//                 JS
-//               </div>
-//               <div className="w-8 h-8 bg-purple-500 rounded-full border-2 border-white flex items-center justify-center text-xs font-medium text-white">
-//                 MJ
-//               </div>
-//               <div className="w-8 h-8 bg-gray-100 rounded-full border-2 border-white flex items-center justify-center text-xs font-medium text-gray-600">
-//                 +6
-//               </div>
-//             </div>
-//           </div>
+//     <div className="flex-1 p-6 bg-gray-50 min-h-screen">
+//       {/* Skeleton Header */}
+//       <div className="flex items-center justify-between mb-6">
+//         <div className="flex items-center gap-3">
+//           <div className="w-8 h-8 bg-gray-200 rounded-lg animate-pulse"></div>
+//           <div className="w-32 h-6 bg-gray-200 rounded animate-pulse"></div>
 //         </div>
-
-//         <SortableContext 
-//           items={columns.map(col => col.id)} 
-//           strategy={horizontalListSortingStrategy}
-//         >
-//           <div className="flex gap-6 overflow-x-auto pb-6">
-//             {columns.map((column) => (
-//               <Column
-//                 key={column.id}
-//                 column={column}
-//                 onTaskMove={moveTask}
-//                 onTaskAdd={addTask}
-//                 onTaskUpdate={updateTask}
-//                 onTaskDelete={deleteTask}
-//               />
+//         <div className="flex items-center gap-4">
+//           <div className="w-64 h-10 bg-gray-200 rounded-lg animate-pulse"></div>
+//           <div className="flex -space-x-2">
+//             {[1, 2, 3, 4].map(i => (
+//               <div key={i} className="w-8 h-8 bg-gray-200 rounded-full animate-pulse"></div>
 //             ))}
 //           </div>
-//         </SortableContext>
-
-//         {/* Drag Overlay */}
-//         <DragOverlay>
-//           {activeTask ? (
-//             <div className="bg-white rounded-lg border border-blue-300 p-3 shadow-lg opacity-80 rotate-6 transform w-80">
-//               <div className="font-medium text-gray-900 text-sm">
-//                 {activeTask.title}
-//               </div>
-//             </div>
-//           ) : null}
-//         </DragOverlay>
+//         </div>
 //       </div>
-//     </DndContext>
+
+//       {/* Skeleton Columns */}
+//       <div className="flex gap-6 overflow-x-auto pb-6">
+//         {[1, 2, 3, 4, 5].map(i => (
+//           <div key={i} className="flex-shrink-0 w-80">
+//             <div className="bg-gray-200 p-4 rounded-t-lg animate-pulse h-12"></div>
+//             <div className="bg-gray-100 rounded-b-lg min-h-96 p-3 space-y-3">
+//               {[1, 2, 3].map(j => (
+//                 <div key={j} className="bg-white rounded-lg p-3 h-20 animate-pulse"></div>
+//               ))}
+//             </div>
+//           </div>
+//         ))}
+//       </div>
+//     </div>
+//   );
+// }
+
+// export function KanbanBoard() {
+//   return (
+//     <Suspense fallback={<KanbanBoardSkeleton />}>
+//       <ClientKanbanBoard />
+//     </Suspense>
 //   );
 // }
 
