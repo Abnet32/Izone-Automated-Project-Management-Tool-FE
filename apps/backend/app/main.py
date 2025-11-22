@@ -1,9 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.auth.auth import router as auth_router
-from app.db.session import engine
-from app.db.base import Base
-from app.workspaces import api as organization_router
+from .auth.auth import router as auth_router
+from .db.session import engine
+from .db.base import Base
+from .workspaces import routes as workspace_router
+from .projects import routes as project_router
+from .tasks import routes as task_router
+
 
 
 # Create all database tables
@@ -14,8 +17,9 @@ app = FastAPI()
 
 
 app.include_router(auth_router)
-app.include_router(organization_router.router)
-
+app.include_router(workspace_router.router)
+app.include_router(project_router.router)
+app.include_router(task_router.router)
 
 # Configure CORS
 
