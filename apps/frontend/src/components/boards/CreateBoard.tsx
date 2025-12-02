@@ -1,30 +1,27 @@
-// src/components/boards/CreateBoard.tsx
 'use client';
 
 import { useState } from "react";
 import { useBoardStore } from "@/store/boardStore";
 import { Board } from "@/lib/types";
-import { v4 as uuidv4 } from "uuid";
 
 export const CreateBoard = ({ onClose }: { onClose?: () => void }) => {
   const [name, setName] = useState("");
   const [privacy, setPrivacy] = useState<Board["privacy"]>("workspace");
   const [background, setBackground] = useState("#4f46e5");
-  const addBoard = useBoardStore((state) => state.addBoard);
+  const addBoard = useBoardStore((state) => state.addBoard); // CORRECT: addBoard not createBoard
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
     
-    const newBoard: Board = {
-      id: uuidv4(),
+    const newBoardData = {
       name,
       privacy,
       background,
-      lists: []
+      lists: [], // CRITICAL: Include empty lists array
     };
     
-    addBoard(newBoard);
+    addBoard(newBoardData);
     setName("");
     onClose?.();
   };
@@ -56,9 +53,9 @@ export const CreateBoard = ({ onClose }: { onClose?: () => void }) => {
           onChange={(e) => setPrivacy(e.target.value as Board["privacy"])}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         >
-          <option value="workspace">Workspace (Visible to workspace members)</option>
-          <option value="private">Private (Only invited members)</option>
-          <option value="public">Public (Anyone can view)</option>
+          <option value="workspace">Workspace</option>
+          <option value="private">Private</option>
+          <option value="public">Public</option>
         </select>
       </div>
 
@@ -94,3 +91,7 @@ export const CreateBoard = ({ onClose }: { onClose?: () => void }) => {
     </form>
   );
 };
+
+
+
+

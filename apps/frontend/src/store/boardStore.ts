@@ -1,95 +1,177 @@
-// src/store/boardStore.ts
+// src/store/boardStore.ts - SIMPLIFIED WORKING VERSION
 import { create } from "zustand";
-import { Board, List, Card } from "../lib/types";
+import { persist } from 'zustand/middleware';
+import { Board, List, Card } from "@/lib/types";
+import { v4 as uuidv4 } from "uuid";
 
 interface BoardState {
   boards: Board[];
-  addBoard: (board: Board) => void;
+  
+  // Board operations
+  addBoard: (boardData: Omit<Board, 'id' | 'createdAt' | 'updatedAt'>) => void;
   updateBoard: (boardId: string, data: Partial<Board>) => void;
   removeBoard: (boardId: string) => void;
-
-  addList: (boardId: string, list: List) => void;
+  getBoard: (boardId: string) => Board | undefined;
+  
+  // List operations
+  addList: (boardId: string, listTitle: string) => void;
   updateList: (boardId: string, listId: string, data: Partial<List>) => void;
   removeList: (boardId: string, listId: string) => void;
-
-  addCard: (boardId: string, listId: string, card: Card) => void;
+  
+  // Card operations
+  addCard: (boardId: string, listId: string, cardTitle: string) => void;
   updateCard: (boardId: string, listId: string, cardId: string, data: Partial<Card>) => void;
   removeCard: (boardId: string, listId: string, cardId: string) => void;
 }
 
-export const useBoardStore = create<BoardState>((set) => ({
-  boards: [],
+export const useBoardStore = create<BoardState>()(
+  persist(
+    (set, get) => ({
+      boards: [],
 
-  addBoard: (board) => set((state) => ({ boards: [...state.boards, board] })),
-  updateBoard: (boardId, data) => set((state) => ({
-    boards: state.boards.map(b => b.id === boardId ? { ...b, ...data } : b)
-  })),
-  removeBoard: (boardId) => set((state) => ({
-    boards: state.boards.filter(b => b.id !== boardId)
-  })),
+      // Create board with all required fields
+      addBoard: (boardData) => set((state) => {
+        const newBoard: Board = {
+          id: uuidv4(),
+          ...boardData,
+          lists: boardData.lists || [], // Ensure lists exists
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        
+        return { boards: [...state.boards, newBoard] };
+      }),
+      
+      updateBoard: (boardId, data) => set((state) => ({
+        boards: state.boards.map(b => b.id === boardId ? { 
+          ...b, 
+          ...data,
+          updatedAt: new Date().toISOString()
+        } : b)
+      })),
+      
+      removeBoard: (boardId) => set((state) => ({
+        boards: state.boards.filter(b => b.id !== boardId)
+      })),
+      
+      getBoard: (boardId) => get().boards.find(b => b.id === boardId),
 
-  addList: (boardId, list) => set((state) => ({
-    boards: state.boards.map(b => b.id === boardId ? { ...b, lists: [...b.lists, list] } : b)
-  })),
-  updateList: (boardId, listId, data) => set((state) => ({
-    boards: state.boards.map(b => b.id === boardId ? {
-      ...b,
-      lists: b.lists.map(l => l.id === listId ? { ...l, ...data } : l)
-    } : b)
-  })),
-  removeList: (boardId, listId) => set((state) => ({
-    boards: state.boards.map(b => b.id === boardId ? {
-      ...b,
-      lists: b.lists.filter(l => l.id !== listId)
-    } : b)
-  })),
+      // Add list with proper List object
+      addList: (boardId, listTitle) => set((state) => ({
+        boards: state.boards.map(b => {
+          if (b.id !== boardId) return b;
+          
+          const newList: List = {
+            id: uuidv4(),
+            title: listTitle,
+            cards: [],
+            position: b.lists?.length || 0
+          };
+          
+          return {
+            ...b,
+            lists: [...(b.lists || []), newList],
+            updatedAt: new Date().toISOString()
+          };
+        })
+      })),
+      
+      updateList: (boardId, listId, data) => set((state) => ({
+        boards: state.boards.map(b => {
+          if (b.id !== boardId) return b;
+          
+          return {
+            ...b,
+            lists: (b.lists || []).map(l => 
+              l.id === listId ? { ...l, ...data } : l
+            ),
+            updatedAt: new Date().toISOString()
+          };
+        })
+      })),
+      
+      removeList: (boardId, listId) => set((state) => ({
+        boards: state.boards.map(b => {
+          if (b.id !== boardId) return b;
+          
+          return {
+            ...b,
+            lists: (b.lists || []).filter(l => l.id !== listId),
+            updatedAt: new Date().toISOString()
+          };
+        })
+      })),
 
-  addCard: (boardId, listId, card) => set((state) => ({
-    boards: state.boards.map(b => b.id === boardId ? {
-      ...b,
-      lists: b.lists.map(l => l.id === listId ? { ...l, cards: [...l.cards, card] } : l)
-    } : b)
-  })),
-  updateCard: (boardId, listId, cardId, data) => set((state) => ({
-    boards: state.boards.map(b => b.id === boardId ? {
-      ...b,
-      lists: b.lists.map(l => l.id === listId ? {
-        ...l,
-        cards: l.cards.map(c => c.id === cardId ? { ...c, ...data } : c)
-      } : l)
-    } : b)
-  })),
-  removeCard: (boardId, listId, cardId) => set((state) => ({
-    boards: state.boards.map(b => b.id === boardId ? {
-      ...b,
-      lists: b.lists.map(l => l.id === listId ? {
-        ...l,
-        cards: l.cards.filter(c => c.id !== cardId)
-      } : l)
-    } : b)
-  })),
-}));
+      // Add card
+      addCard: (boardId, listId, cardTitle) => set((state) => ({
+        boards: state.boards.map(b => {
+          if (b.id !== boardId) return b;
+          
+          const newCard: Card = {
+            id: uuidv4(),
+            title: cardTitle,
+          };
+          
+          return {
+            ...b,
+            lists: (b.lists || []).map(l => {
+              if (l.id !== listId) return l;
+              
+              return {
+                ...l,
+                cards: [...(l.cards || []), newCard]
+              };
+            }),
+            updatedAt: new Date().toISOString()
+          };
+        })
+      })),
+      
+      updateCard: (boardId, listId, cardId, data) => set((state) => ({
+        boards: state.boards.map(b => {
+          if (b.id !== boardId) return b;
+          
+          return {
+            ...b,
+            lists: (b.lists || []).map(l => {
+              if (l.id !== listId) return l;
+              
+              return {
+                ...l,
+                cards: (l.cards || []).map(c => 
+                  c.id === cardId ? { ...c, ...data } : c
+                )
+              };
+            }),
+            updatedAt: new Date().toISOString()
+          };
+        })
+      })),
+      
+      removeCard: (boardId, listId, cardId) => set((state) => ({
+        boards: state.boards.map(b => {
+          if (b.id !== boardId) return b;
+          
+          return {
+            ...b,
+            lists: (b.lists || []).map(l => {
+              if (l.id !== listId) return l;
+              
+              return {
+                ...l,
+                cards: (l.cards || []).filter(c => c.id !== cardId)
+              };
+            }),
+            updatedAt: new Date().toISOString()
+          };
+        })
+      })),
+    }),
+    {
+      name: 'board-storage',
+    }
+  )
+);
 
 
 
-// import create from "zustand";
-// import { Board } from "../lib/types";
-
-// type State = {
-//   boards: Board[];
-//   loading: boolean;
-//   setBoards: (boards: Board[]) => void;
-//   addBoard: (board: Board) => void;
-//   updateBoard: (id: string, payload: Partial<Board>) => void;
-// };
-
-// export const useBoardStore = create<State>((set) => ({
-//   boards: [],
-//   loading: false,
-//   setBoards: (boards) => set({ boards }),
-//   addBoard: (board) => set((state) => ({ boards: [board, ...state.boards] })),
-//   updateBoard: (id, payload) =>
-//     set((state) => ({
-//       boards: state.boards.map((b) => (b.id === id ? { ...b, ...payload } : b)),
-//     })),
-// }));

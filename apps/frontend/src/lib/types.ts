@@ -11,43 +11,44 @@ export interface List {
   id: string;
   title: string;
   cards: Card[];
+  position?: number;
 }
 
 export interface Board {
   id: string;
   name: string;
   privacy: Privacy;
-  background: string; // color or image URL
-  lists: List[];
+  background: string;
+  description?: string;
+  lists: List[]; // REQUIRED
+  createdAt: string;
+  updatedAt: string;
 }
 
 
 
+// // src/lib/types.ts
 // export type Privacy = "workspace" | "private" | "public";
 
-// export type Card = {
+// export interface Card {
 //   id: string;
 //   title: string;
 //   description?: string;
-//   labels?: string[];
-//   members?: string[];
-//   dueDate?: string | null;
-//   checklist?: { id: string; title: string; checked: boolean }[];
-//   position: number;
-// };
+// }
 
-// export type List = {
+// export interface List {
 //   id: string;
 //   title: string;
-//   position: number;
 //   cards: Card[];
-// };
+// }
 
-// export type Board = {
+// export interface Board {
 //   id: string;
 //   name: string;
 //   privacy: Privacy;
-//   bg?: string;
-//   createdAt: number;
+//   background: string; // color or image URL
 //   lists: List[];
-// };
+// }
+
+
+

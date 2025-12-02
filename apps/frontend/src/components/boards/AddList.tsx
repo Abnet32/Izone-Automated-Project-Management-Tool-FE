@@ -1,10 +1,7 @@
-// src/components/boards/AddList.tsx
 'use client';
 
 import { useState } from "react";
 import { useBoardStore } from "@/store/boardStore";
-import { List } from "@/lib/types";
-import { v4 as uuidv4 } from "uuid";
 import { Plus, X } from "lucide-react";
 
 export const AddList = ({ boardId }: { boardId: string }) => {
@@ -15,14 +12,8 @@ export const AddList = ({ boardId }: { boardId: string }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
-    
-    const newList: List = {
-      id: uuidv4(),
-      title: title.trim(),
-      cards: []
-    };
-    
-    addList(boardId, newList);
+
+    addList(boardId, title.trim()); // Store expects string
     setTitle("");
     setIsAdding(false);
   };
@@ -72,3 +63,6 @@ export const AddList = ({ boardId }: { boardId: string }) => {
     </div>
   );
 };
+
+
+

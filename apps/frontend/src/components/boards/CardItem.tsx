@@ -1,9 +1,7 @@
-// src/components/boards/CardItem.tsx
 'use client';
 
 import { Card } from "@/lib/types";
 import { useBoardStore } from "@/store/boardStore";
-import { MoreVertical } from "lucide-react";
 
 export const CardItem = ({ 
   boardId, 
@@ -14,27 +12,42 @@ export const CardItem = ({
   listId: string; 
   card: Card 
 }) => {
+  // Add null check
+  if (!card) {
+    console.error("CardItem received null/undefined card");
+    return null;
+  }
+
   const removeCard = useBoardStore((state) => state.removeCard);
 
   const handleDelete = () => {
-    if (confirm("Delete this card?")) {
+    if (confirm(`Delete card "${card.title}"?`)) {
       removeCard(boardId, listId, card.id);
     }
   };
 
   return (
-    <div className="p-3 bg-white border rounded shadow-sm hover:shadow cursor-pointer group relative">
-      <p>{card.title}</p>
+    <div className="p-3 bg-white border rounded shadow-sm hover:shadow cursor-pointer">
+      <div className="flex justify-between items-start">
+        <p className="font-medium">{card.title}</p>
+        <button
+          onClick={handleDelete}
+          className="text-gray-400 hover:text-red-500 text-sm"
+        >
+          ×
+        </button>
+      </div>
       {card.description && (
         <p className="text-sm text-gray-600 mt-1">{card.description}</p>
       )}
-      
-      <button
-        onClick={handleDelete}
-        className="absolute top-2 right-2 p-1 opacity-0 group-hover:opacity-100 hover:bg-gray-100 rounded transition-opacity"
-      >
-        <MoreVertical className="w-4 h-4 text-gray-500" />
-      </button>
     </div>
   );
 };
+
+
+
+
+
+
+
+
