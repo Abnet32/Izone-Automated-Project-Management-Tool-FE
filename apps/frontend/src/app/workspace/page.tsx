@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useBoardStore } from "@/store/board.store";
 import { v4 as uuid } from "uuid";
 import CreateBoardModal from "@/components/board/CreateBoardModal";
-import BoardCard from "@/components/board/BoardCard";
+import {BoardCard} from "@/components/board/BoardCard";
 
 export default function WorkspacePage() {
   const params = useParams();

@@ -1,10 +1,11 @@
+// src/app/boards/page.tsx
 'use client';
 
 import { useState } from 'react';
-import { useBoardStore } from '@/store/board.store';
+import { useBoardStore } from '@/store/boardStore';
+import { BoardCard } from '@/components/boards/BoardCard';
+import { CreateBoard } from '@/components/boards/CreateBoard';
 import { Search, Filter, Grid, List, Archive, Star, Plus } from 'lucide-react';
-import CreateBoardModal from '@/components/board/CreateBoardModal';
-import BoardCard from '@/components/board/BoardCard';
 
 export default function BoardsPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -13,83 +14,36 @@ export default function BoardsPage() {
   const [showStarred, setShowStarred] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Get boards from store - FIXED: These are now functions that return arrays
-  const activeBoards = useBoardStore((state) => state.getActiveBoards());
-  const archivedBoards = useBoardStore((state) => state.getArchivedBoards());
-  const starredBoards = useBoardStore((state) => state.getStarredBoards());
-
-  // Get all boards for searching
-  const allBoards = useBoardStore((state) => state.boards);
+  // Get boards from store
+  const boards = useBoardStore((state) => state.boards);
   const createBoard = useBoardStore((state) => state.createBoard);
-  const updateBoard = useBoardStore((state) => state.updateBoard);
-  const deleteBoard = useBoardStore((state) => state.deleteBoard);
+
+  const handleCreateBoard = (boardData: any) => {
+    createBoard(boardData);
+    setIsModalOpen(false);
+  };
 
   // Filter boards based on search, starred, and archived filters
-  const filteredBoards = allBoards.filter(board => {
+  const filteredBoards = boards.filter(board => {
     // Search filter
     const matchesSearch = searchTerm === '' || 
-      board.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      board.description?.toLowerCase().includes(searchTerm.toLowerCase());
+      board.name.toLowerCase().includes(searchTerm.toLowerCase());
     
-    // Archived filter
-    const matchesArchived = showArchived ? board.status === 'archived' : board.status === 'active';
+    // Archived filter (if you have status property)
+    // const matchesArchived = showArchived ? board.status === 'archived' : board.status === 'active';
     
-    // Starred filter
-    const matchesStarred = !showStarred || board.isStarred === true;
+    // Starred filter (if you have isStarred property)
+    // const matchesStarred = !showStarred || board.isStarred === true;
     
-    return matchesSearch && matchesArchived && matchesStarred;
+    return matchesSearch; // Add && matchesArchived && matchesStarred when you add those properties
   });
-
-  // Get the boards to display based on active filters
-  const boardsToDisplay = showArchived 
-    ? archivedBoards 
-    : showStarred 
-      ? starredBoards 
-      : activeBoards;
-
-  // Apply search filter to the selected boards
-  const finalBoards = searchTerm 
-    ? boardsToDisplay.filter(board =>
-        board.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        board.description?.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    : boardsToDisplay;
 
   // Stats
   const stats = {
-    total: allBoards.length,
-    active: activeBoards.length,
-    archived: archivedBoards.length,
-    starred: starredBoards.length,
-  };
-
-  const handleCreateBoard = async (data: { name: string; description?: string; color?: string }) => {
-    try {
-      await createBoard({
-        name: data.name,
-        description: data.description,
-        color: data.color,
-      });
-      setIsModalOpen(false);
-    } catch (error) {
-      console.error('Failed to create board:', error);
-      alert('Failed to create board. Please try again.');
-    }
-  };
-
-  const handleDeleteBoard = (boardId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (confirm('Are you sure you want to delete this board?')) {
-      deleteBoard(boardId);
-    }
-  };
-
-  const handleStarBoard = (boardId: string, isStarred: boolean) => {
-    updateBoard(boardId, { isStarred });
-  };
-
-  const handleArchiveBoard = (boardId: string, shouldArchive: boolean) => {
-    updateBoard(boardId, { status: shouldArchive ? 'archived' : 'active' });
+    total: boards.length,
+    active: boards.length, // Update when adding status property
+    archived: 0, // Update when adding status property
+    starred: 0, // Update when adding isStarred property
   };
 
   return (
@@ -198,7 +152,7 @@ export default function BoardsPage() {
         </div>
 
         {/* Boards Display */}
-        {finalBoards.length === 0 ? (
+        {filteredBoards.length === 0 ? (
           <div className="text-center py-16 bg-white rounded-2xl shadow-sm border">
             <div className="mx-auto w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-6">
               <Grid size={32} className="text-gray-400" />
@@ -224,18 +178,8 @@ export default function BoardsPage() {
             ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5'
             : 'space-y-3'
           }>
-            {finalBoards.map((board) => (
-              <BoardCard
-                key={board.id}
-                board={board}
-                viewMode={viewMode}
-                onDelete={(e) => handleDeleteBoard(board.id, e)}
-                onStar={handleStarBoard}
-                onClick={() => {
-                  // Navigate to board page
-                  console.log('Navigate to board:', board.id);
-                }}
-              />
+            {filteredBoards.map((board) => (
+              <BoardCard key={board.id} board={board} />
             ))}
             
             {/* Add New Board Card */}
@@ -258,16 +202,18 @@ export default function BoardsPage() {
         )}
 
         {/* Create Board Modal */}
-        <CreateBoardModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          onCreate={handleCreateBoard}
-        />
+        {isModalOpen && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <CreateBoard 
+              onCreate={handleCreateBoard}
+              onClose={() => setIsModalOpen(false)} 
+            />
+          </div>
+        )}
       </div>
     </div>
   );
 }
-
 
 
 // 'use client';
