@@ -1,3 +1,48 @@
+// 'use client';
+
+// import { useState } from 'react';
+// import { useRouter } from 'next/navigation';
+// import Link from 'next/link';
+// import { useWorkspaces } from '@/hooks/workspaces/use-workspaces';
+
+// export default function CreateWorkspacePage() {
+//   const router = useRouter();
+//   const { createWorkspace } = useWorkspaces(); 
+
+//   const [name, setName] = useState('');
+//   const [description, setDescription] = useState('');
+//   const [isLoading, setIsLoading] = useState(false);
+
+//   const handleSubmit = async (e: React.FormEvent) => {
+//     e.preventDefault();
+//     if (!name.trim()) return;
+
+//     setIsLoading(true);
+//     try {
+//       const newWorkspace = await createWorkspace({
+//         name: name.trim(),
+//         description: description.trim() || undefined,
+//       });
+
+//       router.push(`/workspace/${newWorkspace.id}`);
+//     } catch (error) {
+//       console.error('Failed to create workspace:', error);
+//       setIsLoading(false);
+//     }
+//   };
+
+//   return (
+//     <div>
+//       {/* Your form JSX here */}
+//     </div>
+//   );
+// }
+
+
+
+
+
+
 'use client';
 
 import { useState } from 'react';

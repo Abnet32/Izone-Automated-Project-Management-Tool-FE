@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Workspace } from '@/types';
+import { Workspace } from '@/types/workspace';
 
 interface WorkspaceHeaderProps {
   workspace: Workspace;

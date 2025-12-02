@@ -1,215 +1,172 @@
-'use client';
+// // // src/hooks/useBoard.ts
+// // "use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { 
-  Board, 
-  BoardWithDetails, 
-  CreateBoardData, 
-  UpdateBoardData, // ✅ ADD THIS IMPORT
-  ListWithCards, 
-  List, 
-  Card 
-} from '@/types';
-import { mockBoards, mockLists, mockCards } from '@/lib/mockData';
+// // import { useEffect } from "react";
+// // import { useBoardStore } from "@/store/board.store";
 
-export function useBoard(boardId?: string) {
-  const [board, setBoard] = useState<BoardWithDetails | null>(null);
-  const [boards, setBoards] = useState<Board[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+// // export const useBoard = (boardId?: string) => {
+// //   // Get all store functions directly from Zustand
+// //   const currentBoard = useBoardStore((state) => state.currentBoard);
+// //   const boards = useBoardStore((state) => state.boards);
+  
+// //   // Get all action functions
+// //   const getBoard = useBoardStore((state) => state.getBoard);
+// //   const setCurrentBoard = useBoardStore((state) => state.setCurrentBoard);
+// //   const createBoard = useBoardStore((state) => state.createBoard);
+// //   const updateBoard = useBoardStore((state) => state.updateBoard);
+// //   const deleteBoard = useBoardStore((state) => state.deleteBoard);
+// //   const createList = useBoardStore((state) => state.createList);
+// //   const updateList = useBoardStore((state) => state.updateList);
+// //   const deleteList = useBoardStore((state) => state.deleteList);
+// //   const createCard = useBoardStore((state) => state.createCard);
+// //   const updateCard = useBoardStore((state) => state.updateCard);
+// //   const deleteCard = useBoardStore((state) => state.deleteCard);
+// //   const moveCard = useBoardStore((state) => state.moveCard);
+// //   const reorderLists = useBoardStore((state) => state.reorderLists);
+// //   const reorderCards = useBoardStore((state) => state.reorderCards);
 
-  // Function to create default lists for a new board (Trello-style)
-  const createDefaultLists = useCallback((boardId: string): List[] => {
-    const defaultLists = [
-      { title: 'To Do', position: 0 },
-      { title: 'Doing', position: 1 },
-      { title: 'Done', position: 2 },
-    ];
+// //   useEffect(() => {
+// //     if (boardId) {
+// //       setCurrentBoard(boardId);
+// //     }
+// //   }, [boardId, setCurrentBoard]);
 
-    const createdLists: List[] = [];
-
-    defaultLists.forEach((listData, index) => {
-      const listId = `list-${boardId}-${Date.now()}-${index}`;
-      const newList: List = {
-        id: listId,
-        title: listData.title,
-        position: listData.position,
-        boardId: boardId,
-        cards: [],
-        // mark these as auto-created defaults so UI can hide them
-        isDefault: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-      
-      mockLists.push(newList);
-      createdLists.push(newList);
-    });
-
-    return createdLists;
-  }, []);
-
-  const loadBoard = useCallback(async (id: string) => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      const foundBoard = mockBoards.find(b => b.id === id);
-      if (!foundBoard) {
-        throw new Error('Board not found');
-      }
-
-      // Get all lists for this board
-      const boardLists = mockLists.filter(list => list.boardId === id);
-      
-      // Get all cards for each list and create ListWithCards
-      const listsWithCards: ListWithCards[] = boardLists.map(list => ({
-        ...list,
-        cards: mockCards
-          .filter(card => card.listId === list.id)
-          .sort((a, b) => a.position - b.position)
-      }));
-
-      const boardWithDetails: BoardWithDetails = {
-        ...foundBoard,
-        lists: listsWithCards.sort((a, b) => a.position - b.position)
-      };
-
-      setBoard(boardWithDetails);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load board');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  const loadBoards = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      await new Promise(resolve => setTimeout(resolve, 300));
-      setBoards(mockBoards);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load boards');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (boardId) {
-      loadBoard(boardId);
-    } else {
-      loadBoards();
-    }
-  }, [boardId, loadBoard, loadBoards]);
-
-  const createBoard = async (data: CreateBoardData): Promise<Board> => {
-    console.log('🚀 useBoard: createBoard called with:', data);
+// //   return {
+// //     // Board data
+// //     board: currentBoard,
+// //     boards,
     
-    await new Promise(resolve => setTimeout(resolve, 500));
+// //     // Board operations
+// //     createBoard,
+// //     updateBoard,
+// //     deleteBoard,
+// //     getBoard,
+// //     setCurrentBoard,
     
-    const newBoard: Board = {
-      id: `board-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      title: data.title,
-      description: data.description,
-      workspaceId: data.workspaceId,
-      background: data.background || 'blue',
-      lists: [],
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    console.log('📝 useBoard: Created board object:', newBoard);
-
-    // Note: default lists (To Do/Doing/Done) are no longer auto-created.
-    // The board starts empty and the user can add lists manually via the UI.
-
-    // Add the new board to mockBoards
-    mockBoards.push(newBoard);
+// //     // List operations
+// //     createList,
+// //     updateList,
+// //     deleteList,
+// //     reorderLists,
     
-    setBoards(prev => [...prev, newBoard]);
+// //     // Card operations
+// //     createCard,
+// //     updateCard,
+// //     deleteCard,
+// //     moveCard,
+// //     reorderCards,
+// //   };
+// // };
+
+
+
+
+
+
+
+
+
+
+
+// 'use client';
+
+// import { useState, useEffect } from 'react';
+// import { Board } from '@/types/board';
+// import { boardStore } from '@/lib/boardStore';
+
+// export function useBoard(boardId: string) {
+//   const [board, setBoard] = useState<Board | null>(null);
+//   const [isLoading, setIsLoading] = useState(true);
+//   const [error, setError] = useState<string | null>(null);
+
+//   useEffect(() => {
+//     const loadBoard = () => {
+//       try {
+//         setIsLoading(true);
+//         setError(null);
+
+//         // Try to get board from store
+//         const foundBoard = boardStore.getBoard(boardId);
+        
+//         if (foundBoard) {
+//           setBoard(foundBoard);
+//         } else {
+//           // Create a demo board if not found
+//           const demoBoard = boardStore.createBoard({
+//             id: boardId,
+//             title: 'Project Board',
+//             name: 'Project Board',
+//             description: 'Project management board',
+//             workspaceId: '1',
+//             background: 'blue',
+//             lists: [
+//               {
+//                 id: 'list-1',
+//                 name: 'To Do',
+//                 cards: [
+//                   {
+//                     id: 'card-1',
+//                     title: 'Design Homepage',
+//                     description: 'Create the homepage design mockups',
+//                     labels: ['design', 'high-priority'],
+//                     dueDate: '2024-12-15',
+//                     attachments: [],
+//                     createdAt: new Date().toISOString()
+//                   }
+//                 ]
+//               },
+//               {
+//                 id: 'list-2',
+//                 name: 'In Progress',
+//                 cards: []
+//               },
+//               {
+//                 id: 'list-3',
+//                 name: 'Done',
+//                 cards: []
+//               }
+//             ]
+//           });
+//           setBoard(demoBoard);
+//         }
+//       } catch (err) {
+//         setError('Failed to load board');
+//         console.error('Error loading board:', err);
+//       } finally {
+//         setIsLoading(false);
+//       }
+//     };
+
+//     if (boardId) {
+//       loadBoard();
+//     }
+//   }, [boardId]);
+
+//   // Subscribe to board updates
+//   useEffect(() => {
+//     const unsubscribe = boardStore.subscribe((boards) => {
+//       const updatedBoard = boards.find(b => b.id === boardId);
+//       if (updatedBoard && board) {
+//         setBoard(updatedBoard);
+//       }
+//     });
     
-    console.log('✅ useBoard: Board added to state. Total boards:', mockBoards.length);
-    
-    return newBoard;
-  };
+//     return unsubscribe;
+//   }, [boardId, board]);
 
-  const updateBoard = async (id: string, data: UpdateBoardData): Promise<Board> => {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    const boardIndex = mockBoards.findIndex(b => b.id === id);
-    if (boardIndex === -1) {
-      throw new Error('Board not found');
-    }
+//   const refetch = () => {
+//     if (boardId) {
+//       setIsLoading(true);
+//       const foundBoard = boardStore.getBoard(boardId);
+//       setBoard(foundBoard || null);
+//       setIsLoading(false);
+//     }
+//   };
 
-    const updatedBoard: Board = {
-      ...mockBoards[boardIndex],
-      ...data,
-      updatedAt: new Date(),
-    };
-
-    mockBoards[boardIndex] = updatedBoard;
-    setBoards(prev => prev.map(b => b.id === id ? updatedBoard : b));
-    
-    if (board?.id === id) {
-      // Update the detailed board view as well
-      const updatedBoardWithDetails: BoardWithDetails = {
-        ...updatedBoard,
-        lists: board.lists // Keep the existing lists structure
-      };
-      setBoard(updatedBoardWithDetails);
-    }
-
-    return updatedBoard;
-  };
-
-  const deleteBoard = async (id: string): Promise<void> => {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    const boardIndex = mockBoards.findIndex(b => b.id === id);
-    if (boardIndex !== -1) {
-      mockBoards.splice(boardIndex, 1);
-    }
-    
-    // Also delete associated lists and cards
-    const boardLists = mockLists.filter(list => list.boardId === id);
-    boardLists.forEach(list => {
-      const listIndex = mockLists.findIndex(l => l.id === list.id);
-      if (listIndex !== -1) {
-        mockLists.splice(listIndex, 1);
-      }
-      
-      // Delete cards in this list
-      const listCards = mockCards.filter(card => card.listId === list.id);
-      listCards.forEach(card => {
-        const cardIndex = mockCards.findIndex(c => c.id === card.id);
-        if (cardIndex !== -1) {
-          mockCards.splice(cardIndex, 1);
-        }
-      });
-    });
-    
-    setBoards(prev => prev.filter(b => b.id !== id));
-    if (board?.id === id) {
-      setBoard(null);
-    }
-  };
-
-  return {
-    board,
-    boards,
-    isLoading,
-    error,
-    createBoard,
-    updateBoard,
-    deleteBoard,
-    refetch: boardId ? () => loadBoard(boardId) : loadBoards,
-  };
-}
-
-
-
+//   return {
+//     board,
+//     isLoading,
+//     error,
+//     refetch
+//   };
+// }

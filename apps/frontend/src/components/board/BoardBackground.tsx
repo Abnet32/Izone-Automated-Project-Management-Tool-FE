@@ -1,6 +1,6 @@
 'use client';
 
-import { Board, BoardWithDetails } from '@/types';
+import { Board, BoardWithDetails } from '@/types/board';
 
 interface BoardBackgroundProps {
   board: Board | BoardWithDetails;

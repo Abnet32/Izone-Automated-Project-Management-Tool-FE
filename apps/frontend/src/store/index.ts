@@ -1,5 +1,9 @@
 import { create } from 'zustand';
-import { User, Project, Task, List, ProjectWithDetails, Workspace } from '../types';
+import { Project,   Workspace } from '../types/project';
+import { User } from './store';
+import { Task } from './store';
+import { List } from '@/types';
+import {ProjectWithDetails} from '@/store';
 
 // ✅ Remove the circular import and define storage directly in the store
 const storage = {
