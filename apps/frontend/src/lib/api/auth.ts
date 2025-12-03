@@ -11,9 +11,9 @@ export interface LoginCredentials {
 }
 
 export interface SignupData {
-   email: string;
-   Full_Name: string;
-   password: string;
+  email: string;
+  Full_Name: string;
+  password: string;
 }
 
 export interface AuthResponse {
@@ -60,7 +60,7 @@ export const authApi = {
       }
       const message = body?.detail || body?.message || 'Login failed';
       // log parsed body for debugging
-      console.error('login error body:', { status: response.status, body });
+      // console.error('login error body:', { status: response.status, body });
       throw new Error(message);
     }
 
@@ -103,42 +103,4 @@ export const authApi = {
     return response.json();
   },
 };
-
-/**
- * Mock implementation for development
- * Remove when real API is integrated
- */
-// export const mockAuthApi = {
-//   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-//     // Simulate API delay
-//     await new Promise((resolve) => setTimeout(resolve, 1000));
-    
-//     // Mock successful response
-//     return {
-//       access_token: 'mock-token',
-//       token_type: 'bearer',
-//       user: {
-//         id: '1',
-//         email: credentials.email,
-//       full_name: 'John Doe',
-//       },
-//     };
-//   },
-
-//   async signup(data: SignupData): Promise<AuthResponse> {
-//     // Simulate API delay
-//     await new Promise((resolve) => setTimeout(resolve, 1000));
-    
-//     // Mock successful response
-//     return {
-//       access_token: 'mock-token',
-//       token_type: 'bearer',
-//       user: {
-//         id: '1',
-//         email: data.email,
-//          full_name:data.full_name,
-//       },
-//     };
-//   },
-// };
 

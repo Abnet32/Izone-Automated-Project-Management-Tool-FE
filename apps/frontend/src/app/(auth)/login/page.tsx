@@ -13,11 +13,11 @@ import { Eye, EyeOff, Github, Mail } from "lucide-react";
 import Image from "next/image";
 import { loginSchema, type LoginFormData } from "@/lib/validations/auth";
 import { useAuth } from "@/hooks/use-auth";
-
+import { useRouter } from "next/navigation";
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const { login, isLoading } = useAuth();
-
+  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -37,6 +37,17 @@ export default function LoginPage() {
       // Error handled in useAuth
     }
   };
+
+  const handleClickSignUp = () => {
+    console.log('clickSignUp');
+    try {
+      router.push('/signup');
+      return true;
+    } catch (error) {
+      console.error('error in clickSignUp', error);
+      return false;
+    }
+  }
 
   return (
     <div className="grid md:grid-cols-2 gap-0 min-h-screen">
@@ -138,13 +149,12 @@ export default function LoginPage() {
 
           <div className="text-center text-sm mt-4">
             Don't have an account?{" "}
-            <Link 
-              href="/signup" 
-              className="text-blue-600 hover:text-blue-700 hover:underline transition-colors"
-              prefetch={true}
+            <button 
+              onClick={() => handleClickSignUp()}
+              className="text-blue-600 hover:text-blue-700 hover:underline transition-colors cursor-pointer"
             >
               Sign up
-            </Link>
+            </button>
           </div>
         </div>
       </div>
