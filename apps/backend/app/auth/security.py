@@ -3,6 +3,7 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from dotenv import load_dotenv
 import os
+import hashlib
 from fastapi.security import OAuth2PasswordBearer
 from fastapi import Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -21,9 +22,31 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 def hash_password(password: str) -> str:
+    """
+    Hash password using bcrypt. If password is longer than 72 bytes,
+    hash it with SHA-256 first to avoid bcrypt's 72-byte limit.
+    """
+    # Convert password to bytes to check length
+    password_bytes = password.encode('utf-8')
+    
+    # If password is longer than 72 bytes, hash it with SHA-256 first
+    if len(password_bytes) > 72:
+        password = hashlib.sha256(password_bytes).hexdigest()
+    
     return pwd_context.hash(password)
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """
+    Verify password. If the original password was longer than 72 bytes,
+    it was hashed with SHA-256 first, so we need to do the same here.
+    """
+    # Convert password to bytes to check length
+    password_bytes = plain_password.encode('utf-8')
+    
+    # If password is longer than 72 bytes, hash it with SHA-256 first
+    if len(password_bytes) > 72:
+        plain_password = hashlib.sha256(password_bytes).hexdigest()
+    
     return pwd_context.verify(plain_password, hashed_password)
 
 def create_access_token(data: dict):
@@ -56,7 +79,7 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     if email is None:
         raise credentials_exception
 
-    user = db.query(models.User).filter(models.User.email == email).first()
+    user = db.query(User).filter(User.email == email).first()
     if user is None:
         raise credentials_exception
 
