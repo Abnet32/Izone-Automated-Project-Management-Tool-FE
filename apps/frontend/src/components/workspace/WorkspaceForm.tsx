@@ -1,100 +1,126 @@
-// src/components/workspace/WorkspaceForm.tsx
 'use client';
 
-import { useState } from 'react';
-
-const COLORS = ['#3B82F6', '#10B981', '#8B5CF6', '#EF4444', '#F59E0B', '#EC4899'];
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { X } from 'lucide-react';
 
 interface WorkspaceFormProps {
-  onSubmit: (data: { name: string; description?: string; color: string }) => void;
-  onCancel?: () => void;
+  onSubmit: (data: any) => Promise<void> | void;
+  onCancel: () => void;
 }
 
-export default function WorkspaceForm({ onSubmit, onCancel }: WorkspaceFormProps) {
+const colorOptions = [
+  { value: '#0079bf', label: 'Blue' },
+  { value: '#d29034', label: 'Orange' },
+  { value: '#519839', label: 'Green' },
+  { value: '#b04632', label: 'Red' },
+  { value: '#89609e', label: 'Purple' },
+  { value: '#00aECC', label: 'Teal' },
+  { value: '#838C91', label: 'Gray' },
+];
+
+export const WorkspaceForm: React.FC<WorkspaceFormProps> = ({ onSubmit, onCancel }) => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [selectedColor, setSelectedColor] = useState(COLORS[0]);
+  const [color, setColor] = useState('#0079bf');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
-    
-    onSubmit({
-      name: name.trim(),
-      description: description.trim() || undefined,
-      color: selectedColor,
-    });
-    
-    // Reset form
-    setName('');
-    setDescription('');
+
+    setIsSubmitting(true);
+    try {
+      await onSubmit({
+        name: name.trim(),
+        description: description.trim() || undefined,
+        color,
+        visibility: 'private', // Default to private
+      });
+      setName('');
+      setDescription('');
+      setColor('#0079bf');
+    } catch (error) {
+      console.error('Failed to submit workspace form:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold">Create Workspace</h3>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={onCancel}
+          className="h-8 w-8"
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
+
       <div>
-        <label className="block text-sm font-medium mb-1">Workspace Name *</label>
-        <input
-          type="text"
+        <Label htmlFor="name">Workspace Name</Label>
+        <Input
+          id="name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full p-2 border rounded"
-          placeholder="My Workspace"
+          placeholder="e.g., Marketing Team"
           required
-          autoFocus
+          className="mt-1"
         />
       </div>
-      
+
       <div>
-        <label className="block text-sm font-medium mb-1">Description</label>
-        <textarea
+        <Label htmlFor="description">Description (Optional)</Label>
+        <Textarea
+          id="description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          className="w-full p-2 border rounded"
-          placeholder="Description"
-          rows={2}
+          placeholder="What's this workspace for?"
+          className="mt-1"
+          rows={3}
         />
       </div>
-      
+
       <div>
-        <label className="block text-sm font-medium mb-2">Color</label>
-        <div className="flex gap-2">
-          {COLORS.map((color) => (
+        <Label>Color Theme</Label>
+        <div className="flex gap-2 mt-2">
+          {colorOptions.map((option) => (
             <button
-              key={color}
+              key={option.value}
               type="button"
-              onClick={() => setSelectedColor(color)}
-              className={`w-8 h-8 rounded-full border-2 ${selectedColor === color ? 'border-black' : 'border-gray-300'}`}
-              style={{ backgroundColor: color }}
+              onClick={() => setColor(option.value)}
+              className={`w-8 h-8 rounded-full ${color === option.value ? 'ring-2 ring-offset-2 ring-gray-800' : ''}`}
+              style={{ backgroundColor: option.value }}
+              title={option.label}
             />
           ))}
         </div>
       </div>
-      
-      <div className="flex gap-2 pt-2">
-        {onCancel && (
-          <button
-            type="button"
-            onClick={onCancel}
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-          >
-            Cancel
-          </button>
-        )}
-        <button
-          type="submit"
-          disabled={!name.trim()}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400"
+
+      <div className="flex justify-end gap-2 pt-4">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel}
+          disabled={isSubmitting}
         >
-          Create Workspace
-        </button>
+          Cancel
+        </Button>
+        <Button
+          type="submit"
+          disabled={!name.trim() || isSubmitting}
+        >
+          {isSubmitting ? 'Creating...' : 'Create Workspace'}
+        </Button>
       </div>
     </form>
   );
-}
-
-
-
-
-
-
+};

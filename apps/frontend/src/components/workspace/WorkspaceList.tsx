@@ -1,45 +1,81 @@
-// src/components/workspace/WorkspaceList.tsx
 'use client';
 
-import { useAppStore } from '@/store/useAppStore';
-import WorkspaceCard from './WorkspaceCard';
+import React, { useEffect } from 'react';
+import { WorkspaceCard } from './WorkspaceCard';
+import { WorkspaceEmpty } from './WorkspaceEmpty';
+import { useWorkspace } from '@/hooks/useWorkspace';
+import { Plus, Loader2 } from 'lucide-react';
 
-export default function WorkspaceList() {
-  const workspaces = useAppStore((state) => state.workspaces);
+interface WorkspaceListProps {
+  onCreateClick?: () => void;
+}
 
-  if (workspaces.length === 0) {
+export const WorkspaceList: React.FC<WorkspaceListProps> = ({ onCreateClick }) => {
+  const { workspaces, isLoading, error, loadWorkspaces, removeWorkspace, hasWorkspaces } = useWorkspace();
+
+  useEffect(() => {
+    loadWorkspaces();
+  }, [loadWorkspaces]);
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this workspace?')) {
+      await removeWorkspace(id);
+    }
+  };
+
+  if (isLoading && !hasWorkspaces) {
     return (
-      <div className="text-center py-12">
-        <div className="w-16 h-16 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
-          <svg
-            className="w-8 h-8 text-gray-400"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-            />
-          </svg>
-        </div>
-        <h3 className="text-lg font-medium text-gray-900 mb-2">
-          No workspaces yet
-        </h3>
-        <p className="text-gray-500 max-w-sm mx-auto">
-          Create your first workspace to start organizing your boards and projects.
-        </p>
+      <div className="flex justify-center items-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
       </div>
     );
   }
 
+  if (error) {
+    return (
+      <div className="text-center py-8 text-red-600 bg-red-50 rounded-lg">
+        <p>Error: {error}</p>
+        <button 
+          onClick={() => loadWorkspaces()} 
+          className="mt-2 text-sm text-blue-600 hover:text-blue-800"
+        >
+          Try again
+        </button>
+      </div>
+    );
+  }
+
+  if (!hasWorkspaces) {
+    return <WorkspaceEmpty onCreateClick={onCreateClick} />;
+  }
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {workspaces.map((workspace) => (
-        <WorkspaceCard key={workspace.id} workspace={workspace} />
-      ))}
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="text-xl font-bold text-gray-800">Your Workspaces</h2>
+          <p className="text-gray-600 text-sm mt-1">
+            {workspaces.length} workspace{workspaces.length !== 1 ? 's' : ''}
+          </p>
+        </div>
+        <button
+          onClick={onCreateClick}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          <Plus className="w-4 h-4" />
+          Create Workspace
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {workspaces.map((workspace) => (
+          <WorkspaceCard
+            key={workspace.id}
+            workspace={workspace}
+            onDelete={handleDelete}
+          />
+        ))}
+      </div>
     </div>
   );
-}
+};
