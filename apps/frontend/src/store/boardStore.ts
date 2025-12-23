@@ -409,11 +409,7 @@ const store: StateCreator<BoardStore, [], [], BoardStore> = (
       const backendBoards = await boardsAPI.getWorkspaceBoards(workspaceId);
       const boardsWithLists: BoardWithLists[] = backendBoards.map((board) => ({
         ...board,
-        lists: DEFAULT_LISTS.map((list) => ({
-          ...list,
-          board_id: board.id,
-          cards: [],
-        })),
+        lists: board.lists ? board.lists.map((l: any) => ({ ...l, cards: l.cards || [] })) : [],
       }));
       set({ boards: boardsWithLists, isLoading: false });
     } catch (error: any) {
@@ -461,11 +457,7 @@ const store: StateCreator<BoardStore, [], [], BoardStore> = (
       created_by: "current_user",
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-      lists: DEFAULT_LISTS.map((list) => ({
-        ...list,
-        board_id: newBoardId,
-        cards: [],
-      })),
+      lists: [],
     };
 
     boardsAPI

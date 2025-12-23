@@ -3,6 +3,7 @@
 import { useBoardStore } from "@/store/boardStore";
 import { AddList } from "./AddList";
 import { CardItem } from "./CardItem";
+import CardModal from "./CardModal";
 import { AddCard } from "./AddCard";
 import { Plus } from "lucide-react";
 import { useState } from "react";
@@ -13,6 +14,7 @@ export const BoardList = ({ boardId }: { boardId: string }) => {
   );
   
   const [activeAddCardListId, setActiveAddCardListId] = useState<string | null>(null);
+  const [activeCard, setActiveCard] = useState<{ listId: string; card: any } | null>(null);
 
   if (!board) {
     return (
@@ -61,7 +63,8 @@ export const BoardList = ({ boardId }: { boardId: string }) => {
                       key={card.id} 
                       boardId={boardId} 
                       listId={list.id} 
-                      card={card} 
+                      card={card}
+                      onClick={() => setActiveCard({ listId: list.id, card })}
                     />
                   );
                 })}
@@ -92,6 +95,15 @@ export const BoardList = ({ boardId }: { boardId: string }) => {
         {/* Add List Component */}
         <AddList boardId={boardId} />
       </div>
+
+      {activeCard && (
+        <CardModal
+          boardId={boardId}
+          listId={activeCard.listId}
+          card={activeCard.card}
+          onClose={() => setActiveCard(null)}
+        />
+      )}
     </div>
   );
 };

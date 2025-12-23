@@ -6,11 +6,13 @@ import { useBoardStore } from "@/store/boardStore";
 export const CardItem = ({ 
   boardId, 
   listId, 
-  card 
+  card,
+  onClick,
 }: { 
   boardId: string; 
   listId: string; 
-  card: Card 
+  card: Card,
+  onClick?: () => void,
 }) => {
   // Add null check
   if (!card) {
@@ -27,11 +29,11 @@ export const CardItem = ({
   };
 
   return (
-    <div className="p-3 bg-white border rounded shadow-sm hover:shadow cursor-pointer">
+    <div onClick={() => onClick?.()} className="p-3 bg-white border rounded shadow-sm hover:shadow cursor-pointer">
       <div className="flex justify-between items-start">
         <p className="font-medium">{card.title}</p>
         <button
-          onClick={handleDelete}
+          onClick={(e) => { e.stopPropagation(); handleDelete(); }}
           className="text-gray-400 hover:text-red-500 text-sm"
         >
           ×
