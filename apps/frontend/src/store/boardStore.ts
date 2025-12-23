@@ -349,6 +349,14 @@ interface List {
 }
 type BoardWithLists = Board & { lists?: List[] };
 
+// Default lists scaffold
+const DEFAULT_LISTS: Omit<List, "board_id" | "cards">[] = [
+  { id: "todo", title: "To Do", status: "todo", position: 0, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: "in-progress", title: "In Progress", status: "in-progress", position: 1, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: "review", title: "Review", status: "review", position: 2, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: "done", title: "Done", status: "done", position: 3, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+];
+
 
 
 interface BoardStore {
@@ -457,7 +465,7 @@ const store: StateCreator<BoardStore, [], [], BoardStore> = (
       updated_at: new Date().toISOString(),
       lists: DEFAULT_LISTS.map((list) => ({
         ...list,
-        board_id: newBoardId,
+        board_id: tempId,
         cards: [],
       })),
     };
