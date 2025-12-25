@@ -8,6 +8,7 @@ from .projects import routes as project_router
 from .tasks import routes as task_router
 from .comments import routes as comment_router
 from .lists import routes as list_router
+from app.cards.routes import router as card_router
 
 # Create all database tables
 Base.metadata.create_all(bind=engine)
@@ -22,6 +23,7 @@ app.include_router(project_router.router)
 app.include_router(task_router.router)
 app.include_router(comment_router.router)
 app.include_router(list_router.router)
+app.include_router(card_router)
 
 # Configure CORS
 
