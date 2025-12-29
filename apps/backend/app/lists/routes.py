@@ -48,3 +48,4 @@ def delete_list(
     deleted = crud.delete_list(db, list_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="List not found")
+

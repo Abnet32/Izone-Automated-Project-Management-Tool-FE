@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
+from uuid import UUID
 
 
 class ListBase(BaseModel):
@@ -9,7 +10,7 @@ class ListBase(BaseModel):
 
 
 class ListCreate(ListBase):
-    pass
+     project_id: UUID
 
 
 class ListUpdate(BaseModel):
@@ -18,11 +19,10 @@ class ListUpdate(BaseModel):
 
 
 class ListResponse(ListBase):
-    id: str
-    project_id: str
-    created_at: datetime
-    updated_at: Optional[datetime]
+    id: UUID
+    project_id: UUID
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
-     

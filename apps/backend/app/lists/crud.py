@@ -6,6 +6,7 @@ from app.lists.schema import ListCreate, ListUpdate
 
 def create_list(db: Session, data: ListCreate):
     new_list = List(
+        
         title=data.title,
         position=data.position,
         project_id=data.project_id
