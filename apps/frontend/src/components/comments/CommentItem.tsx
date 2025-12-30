@@ -13,6 +13,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { Button } from "@/components/ui/button"
 
 interface CommentItemProps {
   comment: Comment;
@@ -75,18 +76,21 @@ export default function CommentItem({ comment, onEdit, onDelete }: CommentItemPr
                 </button>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <button
-                      className="p-1 hover:bg-gray-200 rounded text-gray-500 hover:text-red-600"
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-gray-500 hover:text-red-600 hover:bg-red-50"
                       title="Delete"
                     >
-                      <Trash2 className="w-3 h-3" />
-                    </button>
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Delete comment?</AlertDialogTitle>
+                      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                       <AlertDialogDescription>
-                        This action cannot be undone. This will permanently delete your comment.
+                        This action cannot be undone. This will permanently delete your comment
+                        and remove it from our servers.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -95,7 +99,7 @@ export default function CommentItem({ comment, onEdit, onDelete }: CommentItemPr
                         onClick={() => onDelete(comment.id)}
                         className="bg-red-600 hover:bg-red-700 text-white"
                       >
-                        Delete
+                        Continue
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>

@@ -179,7 +179,7 @@ export default function BoardPage() {
         }
       }
     };
-    
+
     loadBoardData();
   }, [boardId, fetchBoardCards]);
 
@@ -251,17 +251,6 @@ export default function BoardPage() {
           </div>
         </div>
       )}
-
-      {/* Back Button */}
-      <div className="p-4">
-        <button
-          onClick={() => router.push(`/workspace/${workspaceId}`)}
-          className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-        >
-          <ArrowLeft size={20} />
-          Back to Workspace
-        </button>
-      </div>
     </div>
   );
 }

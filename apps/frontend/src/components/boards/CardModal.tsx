@@ -8,8 +8,19 @@ import {
   CheckSquare, Tag, Eye, EyeOff, Calendar,
   Send, Image as ImageIcon, FileText, Link,
   AlignLeft, Activity, Archive, Share2, Copy, Trash2,
-  AlertCircle
+  AlertCircle, Pencil
 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface CardModalProps {
   boardId: string;
@@ -45,7 +56,7 @@ export default function CardModal({ boardId, listId, card, onClose }: CardModalP
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [showPriorityMenu, setShowPriorityMenu] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showPriorityMenu, setShowPriorityMenu] = useState(false);
 
   // Ensure arrays exist
   const comments = card.comments || [];
@@ -171,12 +182,15 @@ export default function CardModal({ boardId, listId, card, onClose }: CardModalP
                   onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSaveTitle()}
                 />
               ) : (
-                <h2
-                  className="text-xl font-semibold text-gray-900 cursor-pointer hover:bg-gray-200 px-2 py-1 rounded -mx-2"
+                <div
+                  className="group/title flex items-center gap-2 cursor-pointer hover:bg-gray-200 px-2 py-1 rounded -mx-2 transition-colors"
                   onClick={() => setIsEditingTitle(true)}
                 >
-                  {title}
-                </h2>
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    {title}
+                  </h2>
+                  <Pencil className="w-4 h-4 text-gray-400 opacity-0 group-hover/title:opacity-100 transition-opacity" />
+                </div>
               )}
               <p className="text-sm text-gray-500 mt-1 px-2">
                 in list <span className="font-medium text-gray-700 underline cursor-pointer hover:text-blue-600">{list?.title || 'Unknown'}</span>
@@ -209,10 +223,10 @@ export default function CardModal({ boardId, listId, card, onClose }: CardModalP
             )}
             {card.due_date && (
               <span className={`px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${isOverdue()
-                  ? 'bg-red-100 text-red-700'
-                  : isDueSoon()
-                    ? 'bg-yellow-100 text-yellow-700'
-                    : 'bg-gray-100 text-gray-600'
+                ? 'bg-red-100 text-red-700'
+                : isDueSoon()
+                  ? 'bg-yellow-100 text-yellow-700'
+                  : 'bg-gray-100 text-gray-600'
                 }`}>
                 <Clock className="w-3 h-3" />
                 {formatDate(card.due_date)}
@@ -262,8 +276,8 @@ export default function CardModal({ boardId, listId, card, onClose }: CardModalP
                 <div
                   onClick={() => setIsEditingDescription(true)}
                   className={`min-h-[60px] p-3 rounded-lg cursor-pointer transition-colors ${description
-                      ? 'bg-gray-50 hover:bg-gray-100'
-                      : 'bg-gray-100 hover:bg-gray-200'
+                    ? 'bg-gray-50 hover:bg-gray-100'
+                    : 'bg-gray-100 hover:bg-gray-200'
                     }`}
                 >
                   {description ? (
@@ -353,16 +367,50 @@ export default function CardModal({ boardId, listId, card, onClose }: CardModalP
 
             {/* Due Date */}
             <div className="relative">
-              <label className="w-full flex items-center gap-3 px-3 py-2 text-left bg-gray-200 hover:bg-gray-300 rounded-lg text-sm font-medium text-gray-700 cursor-pointer transition-colors">
-                <Calendar className="w-4 h-4" />
-                <span>Due Date</span>
-                <input
-                  type="date"
-                  value={dueDate}
-                  onChange={handleDueDateChange}
-                  className="absolute inset-0 opacity-0 cursor-pointer"
-                />
-              </label>
+              <div className="w-full bg-gray-200 hover:bg-gray-300 rounded-lg overflow-hidden transition-colors">
+                <label className="flex items-center gap-3 px-3 py-2 text-left text-sm font-medium text-gray-700 cursor-pointer">
+                  <Calendar className="w-4 h-4" />
+                  <span>Due Date</span>
+                  <input
+                    type="date"
+                    value={dueDate}
+                    onChange={handleDueDateChange}
+                    className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                  />
+                </label>
+
+                {/* Days Calculator */}
+                <div className="px-3 pb-2 flex items-center gap-2 border-t border-gray-300 pt-1 pointer-events-auto relative z-20">
+                  <span className="text-[10px] text-gray-500 uppercase font-bold">Or in</span>
+                  <input
+                    type="number"
+                    min="1"
+                    placeholder="#"
+                    className="w-10 px-1 py-0.5 text-xs border rounded bg-white text-center focus:ring-1 focus:ring-blue-500 outline-none"
+                    onClick={(e) => e.stopPropagation()}
+                    onChange={(e) => {
+                      const days = parseInt(e.target.value);
+                      if (!isNaN(days) && days > 0) {
+                        const date = new Date();
+                        date.setDate(date.getDate() + days); // Properly adds days, handling month rollovers
+
+                        // Format to YYYY-MM-DD for input[type="date"]
+                        const yyyy = date.getFullYear();
+                        const mm = String(date.getMonth() + 1).padStart(2, '0');
+                        const dd = String(date.getDate()).padStart(2, '0');
+                        const dateStr = `${yyyy}-${mm}-${dd}`;
+
+                        setDueDate(dateStr);
+                        // Also trigger the update immediately
+                        updateCard(boardId, listId, card.id, {
+                          due_date: new Date(dateStr).toISOString()
+                        });
+                      }
+                    }}
+                  />
+                  <span className="text-xs text-gray-500">days</span>
+                </div>
+              </div>
             </div>
 
             {/* Priority */}
@@ -425,33 +473,34 @@ export default function CardModal({ boardId, listId, card, onClose }: CardModalP
               </button>
 
               {/* Delete */}
-              {showDeleteConfirm ? (
-                <div className="mt-2 p-3 bg-red-50 rounded-lg border border-red-200">
-                  <p className="text-sm text-red-700 mb-2">Delete this card?</p>
-                  <div className="flex gap-2">
-                    <button
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <button
+                    className="w-full flex items-center gap-3 px-3 py-2 text-left bg-red-100 hover:bg-red-200 rounded-lg text-sm font-medium text-red-700 transition-colors mt-2"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    <span>Delete</span>
+                  </button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action cannot be undone. This will permanently delete this card
+                      and remove its data from our servers.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
                       onClick={handleDelete}
-                      className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
+                      className="bg-red-600 hover:bg-red-700 text-white"
                     >
                       Delete
-                    </button>
-                    <button
-                      onClick={() => setShowDeleteConfirm(false)}
-                      className="px-3 py-1 bg-gray-200 text-gray-700 rounded text-sm hover:bg-gray-300"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <button
-                  onClick={() => setShowDeleteConfirm(true)}
-                  className="w-full flex items-center gap-3 px-3 py-2 text-left bg-red-100 hover:bg-red-200 rounded-lg text-sm font-medium text-red-700 transition-colors mt-2"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  <span>Delete</span>
-                </button>
-              )}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </div>
         </div>

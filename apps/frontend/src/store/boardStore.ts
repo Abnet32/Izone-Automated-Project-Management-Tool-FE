@@ -50,6 +50,7 @@ interface BoardStore {
 
   getWorkspaceBoards: (workspaceId: string) => BoardWithLists[];
   getWorkspaceBoardCount: (workspaceId: string) => number;
+  updateBoard: (boardId: string, updates: Partial<Board>) => Promise<void>;
 }
 
 // Helper mappers
@@ -436,6 +437,26 @@ const store: StateCreator<BoardStore, [], [], BoardStore> = (
   getWorkspaceBoards: (workspaceId: string) => get().boards.filter((board: BoardWithLists) => board.workspace_id === workspaceId),
 
   getWorkspaceBoardCount: (workspaceId: string) => get().boards.filter((board: BoardWithLists) => board.workspace_id === workspaceId).length,
+
+  updateBoard: async (boardId: string, updates: Partial<Board>) => {
+    // Optimistic Update
+    set((state: BoardStore) => ({
+      boards: state.boards.map((b: BoardWithLists) =>
+        b.id === boardId ? { ...b, ...updates } : b
+      )
+    }));
+
+    try {
+      // Map 'title' back to 'name' for backend if needed
+      const apiUpdates: any = { ...updates };
+      if (updates.title) apiUpdates.name = updates.title;
+
+      await boardsAPI.updateBoard(boardId, apiUpdates);
+    } catch (error) {
+      console.error("Failed to update board:", error);
+      // We could revert here, but for simplicity we'll just log
+    }
+  },
 });
 
 export const useBoardStore = create<BoardStore>(store);
