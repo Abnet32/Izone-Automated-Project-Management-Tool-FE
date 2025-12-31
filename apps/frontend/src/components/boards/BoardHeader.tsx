@@ -66,31 +66,18 @@ export const BoardHeader = ({ board }: { board: Board }) => {
   return (
     <div className="bg-white shadow-sm border-b border-gray-200 text-gray-900">
       <div className="max-w-7xl mx-auto px-6 py-3">
-        {/* Breadcrumb Navigation */}
-        <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
+        {/* Breadcrumb Navigation - Workspace Link Only */}
+        <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
           {workspaceId && workspace && (
-            <>
-              <Link
-                href={`/workspace/${workspaceId}`}
-                className="hover:text-gray-900 hover:bg-gray-100 px-2 py-0.5 rounded transition-colors flex items-center gap-1.5 font-medium"
-              >
-                <Layout size={14} />
-                {workspace.name}
-              </Link>
-              <ChevronRight size={14} className="text-gray-300" />
-            </>
-          )}
-          <span className="font-semibold text-gray-900 px-2 py-0.5">{title}</span>
-
-          {workspaceId && (
             <Link
               href={`/workspace/${workspaceId}`}
-              className="text-blue-600 hover:text-blue-700 hover:underline flex items-center gap-1.5 text-xs font-medium"
+              className="hover:text-gray-900 hover:bg-gray-100 px-2 py-0.5 rounded transition-colors flex items-center gap-1.5 font-medium"
             >
-              <ArrowLeft size={14} />
-              Back to Workspace
+              <Layout size={14} />
+              {workspace.name}
             </Link>
           )}
+          <ChevronRight size={14} className="text-gray-300" />
         </div>
 
         <div className="flex items-center gap-3">
@@ -112,6 +99,15 @@ export const BoardHeader = ({ board }: { board: Board }) => {
               {title}
             </h1>
           )}
+
+          {/* Back to Workspace Link */}
+          <Link
+            href="/dashboard"
+            className="text-blue-600 hover:text-blue-700 hover:underline flex items-center gap-1.5 text-xs font-medium min-w-fit whitespace-nowrap ml-2"
+          >
+            <ArrowLeft size={14} />
+            Back to Workspace
+          </Link>
 
           <div className="flex items-center gap-2 text-xs font-medium text-gray-400 border-l border-gray-200 pl-3 ml-1 h-6">
             <span className="bg-gray-50 px-2 py-0.5 rounded border border-gray-100">{lists.length} lists</span>
