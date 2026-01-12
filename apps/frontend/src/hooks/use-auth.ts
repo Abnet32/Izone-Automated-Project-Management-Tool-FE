@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { LoginCredentials, SignupData, AuthResponse } from '@/lib/api/auth';
 import { toast } from 'sonner';
-import { authApi } from '@/lib/api/auth';
+import { authApi } from '@/lib/api/auth-api';
 import { removeCookie } from '@/lib/utils';
 
 export function useAuth() {
