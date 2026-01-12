@@ -186,7 +186,7 @@ export default function CommentItem({ comment, onEdit, onDelete }: CommentItemPr
     <div className="flex gap-3 py-3">
       {/* Avatar */}
       <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-medium flex-shrink-0">
-        {comment.author_id ? comment.author_id.charAt(0).toUpperCase() : <User className="w-4 h-4" />}
+        {comment.author_name ? comment.author_name.charAt(0).toUpperCase() : <User className="w-4 h-4" />}
       </div>
 
       {/* Content */}
@@ -201,7 +201,7 @@ export default function CommentItem({ comment, onEdit, onDelete }: CommentItemPr
         ) : (
           <>
             <div className="flex items-center gap-2 mb-1">
-              <span className="font-medium text-gray-800 text-sm">{comment.author_id || "Anonymous"}</span>
+              <span className="font-medium text-gray-800 text-sm">{comment.author_name || "Anonymous"}</span>
               <span className="text-xs text-gray-400">{formatDate(comment.created_at)}</span>
             </div>
             <div className="bg-gray-50 rounded-lg p-3 group relative">

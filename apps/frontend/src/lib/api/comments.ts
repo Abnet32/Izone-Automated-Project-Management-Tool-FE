@@ -349,7 +349,8 @@
 
 
 // lib/api/comments.ts
-const API_BASE_URL = "/api/backend"
+// Use dedicated comments proxy that properly forwards Authorization headers
+const API_BASE_URL = "/api/comments"
 console.log("Comments API Base URL:", API_BASE_URL)
 
 function getToken(): string | null {
@@ -377,6 +378,8 @@ export interface Comment {
   card_id: string
   content: string
   author_id: string | null
+  author_name: string | null
+  author_email: string | null
   created_at: string
 }
 
@@ -416,21 +419,12 @@ export const commentsAPI = {
 
   // Create a new comment
   async createComment(cardId: string, content: string): Promise<Comment> {
-    const token = getToken()
-    if (!token) {
-      const ls = typeof window !== "undefined" ? !!localStorage.getItem("auth_token") : "N/A"
-      const cookies = typeof document !== "undefined" ? document.cookie : ""
-      console.error("Client Auth Debug:", { ls, cookies })
-      throw new Error(
-        `Client Error: You appear logged out. (LS: ${ls}, Cookies: ${cookies.length > 0 ? "Present" : "Empty"})`,
-      )
-    }
-
     try {
       const res = await fetch(`${API_BASE_URL}/cards/${cardId}/comments/`, {
         method: "POST",
         headers: headers(),
         body: JSON.stringify({ card_id: cardId, content }),
+        credentials: "include",
       })
 
       if (res.status === 401) {
@@ -458,6 +452,7 @@ export const commentsAPI = {
         method: "PATCH",
         headers: headers(),
         body: JSON.stringify({ content }),
+        credentials: "include",
       })
 
       if (res.status === 401) {
@@ -484,6 +479,7 @@ export const commentsAPI = {
       const res = await fetch(`${API_BASE_URL}/cards/${cardId}/comments/${commentId}`, {
         method: "DELETE",
         headers: headers(),
+        credentials: "include",
       })
 
       if (res.status === 401) {
