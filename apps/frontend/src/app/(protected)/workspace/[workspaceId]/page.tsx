@@ -5,7 +5,7 @@ import React, { useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useWorkspaces } from '@/hooks/useWorkspace';
 import { useBoardStore } from '@/store/boardStore';
-import { Loader2, ArrowLeft } from 'lucide-react';
+import { Loader2, ArrowLeft, Users } from 'lucide-react';
 import Link from 'next/link';
 
 // IMPORT BOARDS PAGE HERE 👇
@@ -15,7 +15,7 @@ import BoardsPage from '@/app/(protected)/boards/page';
 export default function WorkspaceDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const workspaceId = params.workspaceId as string;
+  const workspaceId = (params?.workspaceId as string) || "";
 
   const {
     loading,
@@ -107,6 +107,13 @@ export default function WorkspaceDetailPage() {
                 Updated: {currentWorkspace.updatedAt ?
                   new Date(currentWorkspace.updatedAt).toLocaleDateString() : 'Never'}
               </div>
+              <Link
+                href={`/workspace/${workspaceId}/members`}
+                className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
+              >
+                <Users className="w-4 h-4" />
+                Manage Members
+              </Link>
             </div>
           </div>
         </div>

@@ -90,6 +90,12 @@ const store: StateCreator<BoardStore, [], [], BoardStore> = (
         lists: [], // Start with empty lists
       }));
       set({ boards: boardsWithLists, isLoading: false });
+
+      // Fetch details (lists & cards) for each board in the background
+      // This populates the card/list counts on the dashboard
+      backendBoards.forEach(board => {
+        get().fetchBoardCards(board.id);
+      });
     } catch (error: any) {
       set({
         error: error?.message || "Failed to fetch boards",
