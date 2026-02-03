@@ -1,6 +1,7 @@
 
 'use client';
 
+import { toast } from 'sonner';
 import React, { useState, useEffect } from 'react';
 import { Task, useStore } from '@/store/store';
 
@@ -39,12 +40,14 @@ export default function TaskModal({ task, isOpen, onClose }: Props) {
         // Only update dueDate if it has a value
         dueDate: dueDate ? new Date(dueDate).toISOString() : undefined, 
     });
+    toast.success('Task saved');
     onClose();
   };
 
   const handleDelete = () => {
     if (window.confirm(`Are you sure you want to delete "${task.title}"?`)) {
         deleteTask(task.id);
+        toast.success('Task deleted');
         onClose();
     }
   };

@@ -396,6 +396,7 @@ const store: StateCreator<BoardStore, [], [], BoardStore> = (
       if (updates.due_date !== undefined) updateData.due_date = updates.due_date;
       if (updates.priority !== undefined) updateData.priority = updates.priority;
       if (updates.position !== undefined) updateData.position = updates.position;
+      if (updates.list_id !== undefined) updateData.list_id = updates.list_id;
 
       await cardsAPI.updateCard(listId, cardId, updateData);
     } catch (error) {

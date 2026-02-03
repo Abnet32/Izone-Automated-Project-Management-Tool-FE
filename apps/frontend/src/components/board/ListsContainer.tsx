@@ -1,7 +1,8 @@
 // components/board/ListsContainer.tsx - UPDATED WITH DND-KIT
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { toast } from 'sonner';
 import { listsAPI, List } from '@/lib/api/lists'; // Import List from API
 import { cardsAPI } from '@/lib/api/cards';
 import { ListComponent } from './List/List';
@@ -200,14 +201,40 @@ export const ListsContainer: React.FC<ListsContainerProps> = ({ projectId }) => 
       setError(null);
       const updatedCard = await cardsAPI.updateCard(listId, cardId, data);
 
+      // If card moved to a different list, update both lists
+      const newListId = data.list_id || listId;
+      const movedToDifferentList = newListId !== listId;
+
       setLists(lists.map(list => {
-        if (list.id === listId) {
-          return {
-            ...list,
-            cards: (list.cards || []).map(card =>
-              card.id === cardId ? updatedCard : card
-            ),
-          };
+        if (movedToDifferentList) {
+          // Remove card from old list
+          if (list.id === listId) {
+            return {
+              ...list,
+              cards: (list.cards || []).filter(card => card.id !== cardId),
+            };
+          }
+          // Add card to new list at the correct position
+          if (list.id === newListId) {
+            const newCards = [...(list.cards || [])];
+            const insertPosition = data.position !== undefined ? data.position : newCards.length;
+            // Insert at the correct position, or append if position is out of bounds
+            newCards.splice(Math.min(insertPosition, newCards.length), 0, updatedCard);
+            return {
+              ...list,
+              cards: newCards,
+            };
+          }
+        } else {
+          // Update card in same list
+          if (list.id === listId) {
+            return {
+              ...list,
+              cards: (list.cards || []).map(card =>
+                card.id === cardId ? updatedCard : card
+              ),
+            };
+          }
         }
         return list;
       }));
@@ -248,7 +275,12 @@ export const ListsContainer: React.FC<ListsContainerProps> = ({ projectId }) => 
 
   // --- DND HANDLERS ---
 
+  const prevListsRef = useRef<List[] | null>(null);
+
   function onDragStart(event: DragStartEvent) {
+    // Keep a snapshot of lists before dragging so we can revert if persistence fails
+    prevListsRef.current = JSON.parse(JSON.stringify(lists)); // Deep copy
+
     if (event.active.data.current?.type === "Column") {
       setActiveColumn(event.active.data.current.list);
       return;
@@ -264,8 +296,8 @@ export const ListsContainer: React.FC<ListsContainerProps> = ({ projectId }) => 
     const { active, over } = event;
     if (!over) return;
 
-    const activeId = active.id;
-    const overId = over.id;
+    const activeId = String(active.id);
+    const overId = String(over.id);
 
     if (activeId === overId) return;
 
@@ -353,18 +385,27 @@ export const ListsContainer: React.FC<ListsContainerProps> = ({ projectId }) => 
   }
 
   function onDragEnd(event: DragEndEvent) {
-    setActiveColumn(null);
-    setActiveCard(null);
-
     const { active, over } = event;
-    if (!over) return;
+    if (!over) {
+      setActiveColumn(null);
+      setActiveCard(null);
+      prevListsRef.current = null;
+      return;
+    }
 
     const activeId = active.id;
     const overId = over.id;
 
-    if (activeId === overId) return;
+    if (activeId === overId) {
+      setActiveColumn(null);
+      setActiveCard(null);
+      prevListsRef.current = null;
+      return;
+    }
 
     const isActiveAColumn = active.data.current?.type === "Column";
+
+    // If a column was dragged, persist the new order for lists
     if (isActiveAColumn) {
       const oldIndex = lists.findIndex(list => list.id === activeId);
       const newIndex = lists.findIndex(list => list.id === overId);
@@ -375,7 +416,94 @@ export const ListsContainer: React.FC<ListsContainerProps> = ({ projectId }) => 
         // Here is where you would call the backend to update list positions
         // updateListPositions(newLists)
       }
+
+      setActiveColumn(null);
+      prevListsRef.current = null;
+      return;
     }
+
+    // Handle card moves (persist position and list change)
+    const isActiveACard = active.data.current?.type === "Card";
+    console.log('🔍 onDragEnd - isActiveACard:', isActiveACard, 'active.data.current:', active.data.current);
+
+    if (isActiveACard) {
+      // Find the original list the card was in (before drag)
+      const activeIdStr = String(activeId);
+      console.log('🔍 Looking for card with ID:', activeIdStr);
+      console.log('🔍 prevListsRef.current:', prevListsRef.current?.map(l => ({ id: l.id, cardIds: l.cards?.map(c => c.id) })));
+      console.log('🔍 current lists:', lists.map(l => ({ id: l.id, cardIds: l.cards?.map(c => c.id) })));
+
+      const originalListIndex = prevListsRef.current?.findIndex(list =>
+        list.cards?.some(c => c.id === activeIdStr)
+      ) ?? -1;
+
+      // Find the target list the card ended up in (after drag)
+      const targetListIndex = lists.findIndex(list => list.cards?.some(c => c.id === activeIdStr));
+
+      console.log('🔍 originalListIndex:', originalListIndex, 'targetListIndex:', targetListIndex);
+
+      if (targetListIndex === -1) {
+        // shouldn't happen, revert
+        console.log('❌ targetListIndex is -1, reverting');
+        if (prevListsRef.current) setLists(prevListsRef.current);
+        setActiveCard(null);
+        prevListsRef.current = null;
+        return;
+      }
+
+      const targetList = lists[targetListIndex];
+      const newPosition = targetList.cards!.findIndex(c => c.id === activeIdStr);
+
+      // Check if card moved to a different list
+      const movedToDifferentList = originalListIndex !== -1 &&
+        originalListIndex !== targetListIndex &&
+        prevListsRef.current?.[originalListIndex]?.id !== targetList.id;
+
+      // Prepare update data
+      const updateData: any = { position: newPosition };
+
+      // If card moved to a different list, include the new list_id
+      if (movedToDifferentList) {
+        updateData.list_id = targetList.id;
+      }
+
+      // Persist change for the moved card
+      console.log('🔍 About to persist card move. movedToDifferentList:', movedToDifferentList);
+      console.log('🔍 updateData:', updateData);
+
+      (async () => {
+        try {
+          // Use the original list ID for the API call (the card is still in the old list on backend)
+          const originalListId = movedToDifferentList && prevListsRef.current?.[originalListIndex]?.id
+            ? prevListsRef.current[originalListIndex].id
+            : targetList.id;
+
+          console.log('🔍 Calling handleUpdateCard with:', { originalListId, activeIdStr, updateData });
+          await handleUpdateCard(originalListId, activeIdStr, updateData);
+          console.log('✅ handleUpdateCard succeeded');
+
+          // Re-fetch to ensure server canonical ordering and reflect the move
+          await fetchLists();
+          console.log('✅ fetchLists succeeded');
+          toast.success('Card moved');
+        } catch (err) {
+          console.error('❌ Failed to persist card move', err);
+          // Revert to previous state
+          if (prevListsRef.current) setLists(prevListsRef.current);
+          toast.error('Failed to move card');
+        } finally {
+          setActiveCard(null);
+          prevListsRef.current = null;
+        }
+      })();
+
+      return;
+    }
+
+    // Fallback cleanup
+    setActiveColumn(null);
+    setActiveCard(null);
+    prevListsRef.current = null;
   }
 
   const listsIds = useMemo(() => lists.map((list) => list.id), [lists]);

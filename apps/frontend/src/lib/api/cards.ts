@@ -41,6 +41,7 @@ export interface UpdateCardData {
   due_date?: string;
   priority?: 'low' | 'medium' | 'high' | 'urgent';
   position?: number;
+  list_id?: string;
 }
 
 const ensureStringId = (id: any): string => {

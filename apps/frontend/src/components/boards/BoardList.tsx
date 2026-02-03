@@ -23,6 +23,7 @@ export const BoardList = ({ boardId }: { boardId: string }) => {
     state.boards.find(b => b.id === boardId)
   );
   const deleteList = useBoardStore((state) => state.deleteList);
+  const updateCard = useBoardStore((state) => state.updateCard);
 
   const [activeAddCardListId, setActiveAddCardListId] = useState<string | null>(null);
   const [activeCard, setActiveCard] = useState<{ listId: string; card: any } | null>(null);
@@ -119,6 +120,7 @@ export const BoardList = ({ boardId }: { boardId: string }) => {
           listId={activeCard.listId}
           card={activeCard.card}
           onClose={() => setActiveCard(null)}
+          updateCard={updateCard}
         />
       )}
 
