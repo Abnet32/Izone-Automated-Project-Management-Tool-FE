@@ -1,3 +1,5 @@
+'use client';
+import { toast } from 'sonner';
 import { useState, useEffect } from "react";
 import { X, FileText, Pencil, Clock, AlignLeft, Activity, Send, Users, Tag, CheckSquare, Calendar, AlertCircle, Paperclip, Eye, EyeOff, Copy, Trash2, Archive } from "lucide-react";
 import { getComments, createComment, Comment } from "@/lib/api/comments";
@@ -51,6 +53,7 @@ export default function CardModal({
   const handleSaveTitle = async () => {
     if (title !== card.title) {
       await updateCard(boardId, listId, card.id, { title });
+      toast.success('Title saved');
     }
     setIsEditingTitle(false);
   };
@@ -58,6 +61,7 @@ export default function CardModal({
   const handleSaveDescription = async () => {
     if (description !== card.description) {
       await updateCard(boardId, listId, card.id, { description });
+      toast.success('Description saved');
     }
     setIsEditingDescription(false);
   };
@@ -66,12 +70,14 @@ export default function CardModal({
     setPriority(newPriority);
     setShowPriorityMenu(false);
     await updateCard(boardId, listId, card.id, { priority: newPriority });
+    toast.success('Priority updated');
   };
 
   const handleDueDateChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setDueDate(val);
     await updateCard(boardId, listId, card.id, { due_date: val ? new Date(val).toISOString() : null });
+    toast.success('Due date updated');
   };
 
   const toggleWatch = async () => {
@@ -81,6 +87,7 @@ export default function CardModal({
   const handleDelete = async () => {
     // Implement delete logic
     await updateCard(boardId, listId, card.id, { _delete: true });
+    toast.success('Card deleted');
     onClose();
   };
 

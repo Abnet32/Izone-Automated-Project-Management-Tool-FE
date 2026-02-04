@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { Card as CardType } from '@/types/card';
 import { X, Calendar, Tag, Users, Paperclip, Save, Clock } from 'lucide-react';
 import CommentsList from '@/components/comments/CommentsList';
@@ -53,9 +54,15 @@ export const CardModal: React.FC<CardModalProps> = ({
 
       if (Object.keys(updates).length > 0) {
         await onUpdate(updates);
+        toast.success('Card updated successfully');
+        onClose();
+      } else {
+        // No changes, just close
+        onClose();
       }
     } catch (error) {
       console.error('Failed to save card:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to save card');
     } finally {
       setIsSaving(false);
     }
@@ -64,9 +71,11 @@ export const CardModal: React.FC<CardModalProps> = ({
   const handleDelete = async () => {
     try {
       await onUpdate({ _delete: true }); // Special flag for delete
+      toast.success('Card deleted successfully');
       onClose();
     } catch (error) {
       console.error('Failed to delete card:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to delete card');
     }
   };
 

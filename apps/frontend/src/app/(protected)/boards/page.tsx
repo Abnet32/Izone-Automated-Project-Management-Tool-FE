@@ -1,11 +1,13 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useBoardStore } from '@/store/boardStore';
+import { useWorkspaces } from '@/hooks/useWorkspace';
+import { boardsAPI } from '@/lib/api/boards';
 import { BoardCard } from '@/components/boards/BoardCard';
 import { CreateBoard } from '@/components/boards/CreateBoard';
-import { Search, Filter, Grid, List, Archive, Star, Plus } from 'lucide-react';
+import { Search, Filter, Grid, List, Archive, Star, Plus, Loader2 } from 'lucide-react';
 
 export default function BoardsPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -13,14 +15,80 @@ export default function BoardsPage() {
   const [showArchived, setShowArchived] = useState(false);
   const [showStarred, setShowStarred] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoadingBoards, setIsLoadingBoards] = useState(true);
 
   // Get boards from store
   const boards = useBoardStore((state) => state.boards);
-  const createBoard = useBoardStore((state) => state.createBoard);
+  const addBoard = useBoardStore((state) => state.addBoard);
+  const { workspaces, loading: workspacesLoading, reload: reloadWorkspaces } = useWorkspaces();
 
-  const handleCreateBoard = (boardData: any) => {
-    createBoard(boardData);
-    setIsModalOpen(false);
+  // Function to fetch all boards from all workspaces
+  const fetchAllBoards = async () => {
+    if (workspacesLoading || workspaces.length === 0) {
+      if (!workspacesLoading && workspaces.length === 0) {
+        setIsLoadingBoards(false);
+      }
+      return;
+    }
+    
+    try {
+      setIsLoadingBoards(true);
+      // Fetch boards from all workspaces in parallel
+      const allBoardsPromises = workspaces.map(workspace => 
+        boardsAPI.getWorkspaceBoards(workspace.id).catch(err => {
+          console.error(`Failed to fetch boards for workspace ${workspace.id}:`, err);
+          return [];
+        })
+      );
+      
+      const boardsArrays = await Promise.all(allBoardsPromises);
+      const allBoards = boardsArrays.flat();
+      
+      // Map boards to the expected format
+      const formattedBoards = allBoards.map((board: any) => ({
+        ...board,
+        title: board.name || board.title,
+        color: board.background_color || board.color,
+        background: board.background_color || board.background,
+        privacy: "workspace",
+        lists: [],
+      }));
+      
+      // Update the store with all boards (replace existing)
+      useBoardStore.setState({ boards: formattedBoards });
+    } catch (error) {
+      console.error('Error fetching all boards:', error);
+    } finally {
+      setIsLoadingBoards(false);
+    }
+  };
+
+  // Fetch all boards when workspaces are loaded
+  useEffect(() => {
+    fetchAllBoards();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workspaces.length, workspacesLoading]);
+
+  const handleCreateBoard = async (boardData: any) => {
+    try {
+      // If no workspaceId provided, use the first workspace
+      const workspaceId = boardData.workspaceId || (workspaces.length > 0 ? workspaces[0].id : null);
+      
+      if (!workspaceId) {
+        throw new Error('No workspace available. Please create a workspace first.');
+      }
+
+      await addBoard({
+        ...boardData,
+        workspaceId,
+      });
+      
+      setIsModalOpen(false);
+      // Refresh boards after creation
+      await fetchAllBoards();
+    } catch (error) {
+      console.error('Failed to create board:', error);
+    }
   };
 
   // Filter boards based on search, starred, and archived filters
@@ -45,6 +113,17 @@ export default function BoardsPage() {
     archived: 0, // Update when adding status property
     starred: 0, // Update when adding isStarred property
   };
+
+  if (workspacesLoading || isLoadingBoards) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-blue-500 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-800">Loading boards...</h2>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 md:p-8">
@@ -203,10 +282,11 @@ export default function BoardsPage() {
 
         {/* Create Board Modal */}
         {isModalOpen && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
             <CreateBoard 
               onCreate={handleCreateBoard}
-              onClose={() => setIsModalOpen(false)} 
+              onClose={() => setIsModalOpen(false)}
+              workspaceId={workspaces.length > 0 ? workspaces[0].id : undefined}
             />
           </div>
         )}

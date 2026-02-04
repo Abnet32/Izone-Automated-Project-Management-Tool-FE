@@ -1,15 +1,25 @@
 'use client';
 
+import { toast } from 'sonner';
 import { useState } from "react";
 import { useBoardStore } from "@/store/boardStore";
 import { Board } from "@/lib/types";
 import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 
-export const CreateBoard = ({ onClose }: { onClose?: () => void }) => {
+export const CreateBoard = ({ 
+  onClose, 
+  workspaceId: propWorkspaceId,
+  onCreate 
+}: { 
+  onClose?: () => void;
+  workspaceId?: string;
+  onCreate?: (boardData: any) => void;
+}) => {
   const params = useParams();
-  const workspaceId = params.workspaceId as string;
   const router = useRouter();
+  // Use prop workspaceId if provided, otherwise try to get from params
+  const workspaceId = propWorkspaceId || (params.workspaceId as string);
 
   const [name, setName] = useState("");
   const [privacy, setPrivacy] = useState<Board["privacy"]>("workspace");
@@ -36,8 +46,15 @@ export const CreateBoard = ({ onClose }: { onClose?: () => void }) => {
       };
 
       // Show loading state
-      await addBoard(newBoardData);
+      if (onCreate) {
+        // If onCreate callback is provided, use it (for boards page)
+        await onCreate(newBoardData);
+      } else {
+        // Otherwise use the store directly (for workspace pages)
+        await addBoard(newBoardData);
+      }
 
+      toast.success('Board created');
       setName("");
       onClose?.();
 

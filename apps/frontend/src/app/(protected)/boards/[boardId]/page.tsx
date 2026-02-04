@@ -13,10 +13,11 @@ export default function BoardPage({ params }: { params: Promise<{ boardId: strin
   const board = boards.find(b => b.id === boardId);
 
   useEffect(() => {
-    if (boardId) {
+    if (boardId && !board) {
+      // Only fetch if we don't have the board in store (e.g., on refresh)
       fetchBoard(boardId);
     }
-  }, [boardId, fetchBoard]);
+  }, [boardId, fetchBoard, board]);
 
   if (isLoading && !board) {
     return (
@@ -26,12 +27,14 @@ export default function BoardPage({ params }: { params: Promise<{ boardId: strin
     );
   }
 
-  if (error || (!isLoading && !board)) {
+  if (!isLoading && (error || !board)) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center text-white">
           <h1 className="text-2xl font-bold mb-2">Board Not Found</h1>
-          <p className="text-gray-300">The board you're looking for doesn't exist.</p>
+          <p className="text-gray-300">
+            {error || "The board you're looking for doesn't exist."}
+          </p>
           <p className="text-gray-400 text-sm mt-2">Board ID: {boardId}</p>
         </div>
       </div>
