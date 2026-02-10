@@ -4,7 +4,6 @@ from pydantic import BaseModel
 
 class AttachmentBase(BaseModel):
     file_path: str
-    task_id: UUID |None
     card_id: UUID | None
 
 class AttachmentCreate(AttachmentBase):
