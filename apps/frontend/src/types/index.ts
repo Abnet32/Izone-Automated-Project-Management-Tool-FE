@@ -1,7 +1,3 @@
-
-
-
-
 // Project = Board (Trello model)
 export interface Project {
   id: string;
