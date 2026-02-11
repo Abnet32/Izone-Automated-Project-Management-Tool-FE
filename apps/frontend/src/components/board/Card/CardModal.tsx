@@ -3,7 +3,11 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Card as CardType } from '@/types/card';
+import { Attachment } from '@/types/attachment';
 import { X, Calendar, Tag, Users, Paperclip, Save, Clock } from 'lucide-react';
+import { attachmentService } from '@/services/attachment';
+import { FileUploader } from './FileUploader';
+import { AttachmentList } from './AttachmentList';
 import CommentsList from '@/components/comments/CommentsList';
 import {
   AlertDialog,
@@ -33,6 +37,20 @@ export const CardModal: React.FC<CardModalProps> = ({
   const [dueDate, setDueDate] = useState(card.due_date || '');
   const [priority, setPriority] = useState(card.priority);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Attachment state
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const [showAttachments, setShowAttachments] = useState(false);
+
+  // Fetch attachments when modal opens or showAttachments is toggled
+  useEffect(() => {
+    if (showAttachments && card.id) {
+      attachmentService.getTaskAttachments(card.id)
+        .then(setAttachments)
+        .catch(err => toast.error('Failed to load attachments'));
+    }
+  }, [showAttachments, card.id]);
 
   // Close on escape key
   useEffect(() => {
@@ -86,6 +104,30 @@ export const CardModal: React.FC<CardModalProps> = ({
     } catch (error) {
       console.error('Failed to delete card:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to delete card');
+    }
+  };
+
+  const handleFileUpload = async (file: File) => {
+    setIsUploading(true);
+    try {
+      const newAttachment = await attachmentService.uploadAttachment(card.id, file);
+      setAttachments(prev => [...prev, newAttachment]);
+      toast.success(`Uploaded ${file.name}`);
+    } catch (error) {
+      console.error('Upload failed:', error);
+      toast.error('Failed to upload file');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleDeleteAttachment = async (id: string) => {
+    try {
+      await attachmentService.deleteAttachment(id);
+      setAttachments(prev => prev.filter(a => a.id !== id));
+    } catch (error) {
+      console.error('Delete failed:', error);
+      throw error;
     }
   };
 
@@ -199,10 +241,35 @@ export const CardModal: React.FC<CardModalProps> = ({
             </div>
 
             {/* Attachments */}
-            <button className="w-full flex items-center gap-3 p-3 text-left hover:bg-gray-100 rounded-lg">
-              <Paperclip className="w-5 h-5 text-gray-500" />
-              <span>Attachments</span>
-            </button>
+            <div className="border rounded-lg overflow-hidden">
+              <button
+                onClick={() => setShowAttachments(!showAttachments)}
+                className="w-full flex items-center justify-between gap-3 p-3 text-left hover:bg-gray-100"
+              >
+                <div className="flex items-center gap-3">
+                  <Paperclip className="w-5 h-5 text-gray-500" />
+                  <span>Attachments</span>
+                </div>
+                {attachments.length > 0 && (
+                  <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                    {attachments.length}
+                  </span>
+                )}
+              </button>
+
+              {showAttachments && (
+                <div className="p-3 border-t space-y-3">
+                  <FileUploader
+                    onUpload={handleFileUpload}
+                    disabled={isUploading}
+                  />
+                  <AttachmentList
+                    attachments={attachments}
+                    onDelete={handleDeleteAttachment}
+                  />
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
