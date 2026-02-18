@@ -8,12 +8,12 @@
 
 import { use } from 'react';
 import { useProjects } from '@/hooks/useProject';
-import { ListContainer } from '@/components/board/ListContainer';
+import { ListsContainer } from '@/components/board/ListsContainer';
 
 export default function ProjectPage({ params }: { params: Promise<{ projectId: string }> }) {
   const resolvedParams = use(params);
   const projectId = resolvedParams.projectId;
-  
+
   const { projects, isLoading, error } = useProjects();
   const project = projects.find(p => p.id === projectId);
 
@@ -37,10 +37,10 @@ export default function ProjectPage({ params }: { params: Promise<{ projectId: s
   }
 
   return (
-    <div 
+    <div
       className="min-h-screen bg-cover bg-center bg-no-repeat"
-      style={{ 
-        background: project.background?.includes('gradient') 
+      style={{
+        background: project.background?.includes('gradient')
           ? `linear-gradient(135deg, ${getGradientColors(project.background)})`
           : getBackgroundColor(project.background)
       }}
@@ -55,7 +55,7 @@ export default function ProjectPage({ params }: { params: Promise<{ projectId: s
             )}
             <div className="flex gap-4 mt-2 text-sm text-white text-opacity-70">
               <span>Status: {project.status}</span>
-              <span>Created: {project.createdAt.toLocaleDateString()}</span>
+              <span>Created: {new Date(project.createdAt).toLocaleDateString()}</span>
             </div>
           </div>
           <div className="flex gap-2">
@@ -68,9 +68,33 @@ export default function ProjectPage({ params }: { params: Promise<{ projectId: s
           </div>
         </div>
       </div>
-      
+
       {/* Project Content - Reuse your existing ListContainer */}
-      <ListContainer board={project} />
+      <ListsContainer projectId={projectId} />
     </div>
   );
+}
+
+function getGradientColors(background: string = 'blue') {
+  const gradients = {
+    'gradient-blue': '#3b82f6, #1d4ed8',
+    'gradient-green': '#10b981, #047857',
+    'gradient-red': '#ef4444, #dc2626',
+    'gradient-purple': '#8b5cf6, #7c3aed',
+    'gradient-orange': '#f59e0b, #d97706',
+    'gradient-pink': '#ec4899, #db2777',
+  };
+  return gradients[background as keyof typeof gradients] || '#3b82f6, #1d4ed8';
+}
+
+function getBackgroundColor(background: string = 'blue') {
+  const colors = {
+    'blue': '#3b82f6',
+    'green': '#10b981',
+    'red': '#ef4444',
+    'purple': '#8b5cf6',
+    'orange': '#f59e0b',
+    'pink': '#ec4899',
+  };
+  return colors[background as keyof typeof colors] || '#3b82f6';
 }

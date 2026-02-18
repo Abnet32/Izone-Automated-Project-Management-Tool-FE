@@ -1,17 +1,4 @@
-const API_BASE_URL = "/api/backend";
-
-function getToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem("auth_token");
-}
-
-function headers(): HeadersInit {
-  const token = getToken();
-  return {
-    "Content-Type": "application/json",
-    ...(token && { Authorization: `Bearer ${token}` }),
-  };
-}
+import { API_BASE_URL, getHeaders, getToken } from '@/lib/api/config';
 
 // Helper function to fetch user UUID from server
 async function fetchUserUuidFromServer(): Promise<string | null> {
@@ -36,10 +23,7 @@ async function fetchUserUuidFromServer(): Promise<string | null> {
       try {
         const response = await fetch(endpoint, {
           method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
+          headers: getHeaders(),
         });
 
         if (response.ok) {
@@ -233,7 +217,7 @@ export const boardsAPI = {
     try {
       const res = await fetch(
         `${API_BASE_URL}/projects/?workspace_id=${workspaceId}`,
-        { headers: headers() }
+        { headers: getHeaders() }
       );
 
       if (res.status === 401) {
@@ -265,7 +249,7 @@ export const boardsAPI = {
   async getBoard(boardId: string): Promise<Board> {
     try {
       const res = await fetch(`${API_BASE_URL}/projects/${boardId}`, {
-        headers: headers(),
+        headers: getHeaders(),
       });
 
       if (res.status === 401) {
@@ -317,7 +301,7 @@ export const boardsAPI = {
         `${API_BASE_URL}/projects/?user_id=${userId}`,
         {
           method: "POST",
-          headers: headers(),
+          headers: getHeaders(),
           body: JSON.stringify({
             name: data.name,
             description: data.description || "",
@@ -358,7 +342,7 @@ export const boardsAPI = {
                 `${API_BASE_URL}/projects/?user_id=${freshUserId}`,
                 {
                   method: "POST",
-                  headers: headers(),
+                  headers: getHeaders(),
                   body: JSON.stringify({
                     name: data.name,
                     description: data.description || "",
@@ -435,7 +419,7 @@ export const boardsAPI = {
         `${API_BASE_URL}/projects/${boardId}?user_id=${userId}`,
         {
           method: "PATCH",
-          headers: headers(),
+          headers: getHeaders(),
           body: JSON.stringify(data),
         }
       );
@@ -477,7 +461,7 @@ export const boardsAPI = {
         `${API_BASE_URL}/projects/${boardId}?user_id=${userId}`,
         {
           method: "DELETE",
-          headers: headers(),
+          headers: getHeaders(),
         }
       );
 
@@ -508,7 +492,7 @@ export const boardsAPI = {
         `${API_BASE_URL}/projects/${boardId}/archive?user_id=${userId}`,
         {
           method: "PUT",
-          headers: headers(),
+          headers: getHeaders(),
         }
       );
 
@@ -550,4 +534,3 @@ export const boardsAPI = {
     }
   }
 };
-

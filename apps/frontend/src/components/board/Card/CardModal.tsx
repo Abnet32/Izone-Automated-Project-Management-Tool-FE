@@ -110,6 +110,7 @@ export const CardModal: React.FC<CardModalProps> = ({
   const handleFileUpload = async (file: File) => {
     setIsUploading(true);
     try {
+      console.log('[CardModal] Uploading file to card:', card.id);
       const newAttachment = await attachmentService.uploadAttachment(card.id, file);
       setAttachments(prev => [...prev, newAttachment]);
       toast.success(`Uploaded ${file.name}`);

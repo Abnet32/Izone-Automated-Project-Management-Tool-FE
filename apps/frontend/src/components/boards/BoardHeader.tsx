@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Board } from "@/lib/types";
+import { Board } from "@/lib/api/boards";
 import { useBoardStore } from '@/store/boardStore';
 import { useWorkspaces } from '@/hooks/useWorkspace';
 import { ChevronRight, Layout, ArrowLeft } from 'lucide-react';

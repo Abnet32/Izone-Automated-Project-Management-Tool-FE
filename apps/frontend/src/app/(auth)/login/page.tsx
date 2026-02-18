@@ -142,7 +142,14 @@ export default function LoginPage() {
             <Button variant="outline" className="w-full flex items-center justify-center gap-2">
               <Github className="h-4 w-4" /> Github
             </Button>
-            <Button variant="outline" className="w-full flex items-center justify-center gap-2">
+            <Button
+              variant="outline"
+              className="w-full flex items-center justify-center gap-2"
+              onClick={() => {
+                const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+                window.location.href = `${base}/auth/google/login`;
+              }}
+            >
               <Mail className="h-4 w-4" /> Google
             </Button>
           </div>

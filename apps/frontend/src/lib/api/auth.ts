@@ -5,31 +5,31 @@
 
 // const API_BASE_URL = "/api/backend";
 
-// export interface LoginCredentials {
-//   email: string;
-//   password: string;
-// }
+export interface LoginCredentials {
+  email: string;
+  password: string;
+}
 
-// export interface SignupData {
-//   email: string;
-//   Full_Name: string;
-//   password: string;
-// }
+export interface SignupData {
+  email: string;
+  Full_Name: string;
+  password: string;
+}
 
-// export interface AuthResponse {
-//   access_token: string;
-//   token_type: string;
-//   user?: {
-//     id: string;
-//     email: string;
-//     full_name: string;
-//   };
-// }
+export interface AuthResponse {
+  access_token: string;
+  token_type: string;
+  user?: {
+    id: string;
+    email: string;
+    full_name: string;
+  };
+}
 
-// export interface ApiError {
-//   message: string;
-//   errors?: Record<string, string[]>;
-// }
+export interface ApiError {
+  message: string;
+  errors?: Record<string, string[]>;
+}
 
 // /**
 //  * Mock authentication service for development

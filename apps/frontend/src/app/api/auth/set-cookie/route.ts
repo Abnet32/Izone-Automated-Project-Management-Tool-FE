@@ -15,12 +15,17 @@ export async function POST(request: NextRequest) {
         // Create response
         const response = NextResponse.json({ success: true });
 
+        // Determine secure flag
+        const isProduction = process.env.NODE_ENV === 'production';
+        const forwardedProto = request.headers.get('x-forwarded-proto');
+        const isSecure = isProduction || forwardedProto === 'https';
+
         // Set httpOnly cookie that's readable by server-side code
         response.cookies.set({
             name: 'auth_token',
             value: token,
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
+            secure: isSecure,
             sameSite: 'lax',
             path: '/',
             maxAge: 60 * 60 * 24 * 7, // 7 days

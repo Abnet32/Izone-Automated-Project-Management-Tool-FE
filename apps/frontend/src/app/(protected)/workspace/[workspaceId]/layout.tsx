@@ -2,7 +2,7 @@ import { ReactNode } from 'react';
 
 interface WorkspaceLayoutProps {
   children: ReactNode;
-  params: { workspaceId: string };
+  params: Promise<{ workspaceId: string }>;
 }
 
 export default function WorkspaceLayout({ children, params }: WorkspaceLayoutProps) {
@@ -14,7 +14,7 @@ export default function WorkspaceLayout({ children, params }: WorkspaceLayoutPro
 }
 
 // Generate metadata for the workspace page
-export async function generateMetadata({ params }: { params: { workspaceId: string } }) {
+export async function generateMetadata({ params }: { params: Promise<{ workspaceId: string }> }) {
   // In a real app, you would fetch workspace data here
   return {
     title: `Workspace | Task Management App`,

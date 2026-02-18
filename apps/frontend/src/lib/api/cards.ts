@@ -1,18 +1,5 @@
 // lib/api/cards.ts
-const API_BASE_URL = "/api/backend";
-
-function getToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem("auth_token");
-}
-
-function headers(): HeadersInit {
-  const token = getToken();
-  return {
-    "Content-Type": "application/json",
-    ...(token && { Authorization: `Bearer ${token}` }),
-  };
-}
+import { API_BASE_URL, getHeaders } from '@/lib/api/config';
 
 export interface Card {
   id: string;
@@ -56,7 +43,7 @@ export const cardsAPI = {
     try {
       const res = await fetch(
         `${API_BASE_URL}/lists/${listId}/cards/`,
-        { headers: headers() }
+        { headers: getHeaders() }
       );
 
       if (res.status === 401) {
@@ -88,7 +75,7 @@ export const cardsAPI = {
         `${API_BASE_URL}/lists/${listId}/cards/`,
         {
           method: "POST",
-          headers: headers(),
+          headers: getHeaders(),
           body: JSON.stringify(data),
         }
       );
@@ -130,7 +117,7 @@ export const cardsAPI = {
         `${API_BASE_URL}/lists/${listId}/cards/${cardId}`,
         {
           method: "PUT",
-          headers: headers(),
+          headers: getHeaders(),
           body: JSON.stringify(updateData),
         }
       );
@@ -175,7 +162,7 @@ export const cardsAPI = {
         `${API_BASE_URL}/lists/${listId}/cards/${cardId}`,
         {
           method: "DELETE",
-          headers: headers(),
+          headers: getHeaders(),
         }
       );
 

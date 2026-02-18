@@ -1,7 +1,11 @@
 'use client';
 import { toast } from 'sonner';
 import { useState, useEffect } from "react";
-import { X, FileText, Pencil, Clock, AlignLeft, Activity, Send, Users, Tag, CheckSquare, Calendar, AlertCircle, Paperclip, Eye, EyeOff, Copy, Trash2, Archive } from "lucide-react";
+import { X, FileText, Pencil, Clock, AlignLeft, Activity, Send, Users, Tag, CheckSquare, Calendar, AlertCircle, Paperclip, Eye, EyeOff, Copy, Trash2, Archive, Upload } from "lucide-react";
+import { Attachment } from '@/types/attachment';
+import { attachmentService } from '@/services/attachment';
+import { FileUploader } from '@/components/board/Card/FileUploader';
+import { AttachmentList } from '@/components/board/Card/AttachmentList';
 import { getComments, createComment, Comment } from "@/lib/api/comments";
 import { type Card } from "@/lib/api/cards";
 import {
@@ -50,6 +54,12 @@ export default function CardModal({
   const [priority, setPriority] = useState<"low" | "medium" | "high" | "urgent">(card.priority || "medium");
   const [dueDate, setDueDate] = useState(card.due_date ? new Date(card.due_date).toISOString().split('T')[0] : "");
 
+  // Attachment state
+  const [attachmentsList, setAttachmentsList] = useState<Attachment[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const [showAttachments, setShowAttachments] = useState(false);
+  const [loadingAttachments, setLoadingAttachments] = useState(false);
+
   const handleSaveTitle = async () => {
     if (title !== card.title) {
       await updateCard(boardId, listId, card.id, { title });
@@ -95,10 +105,7 @@ export default function CardModal({
   const [comments, setComments] = useState<Comment[]>([]);
   const [loadingComments, setLoadingComments] = useState(false);
 
-  // ... existing states ...
-
   // Ensure arrays exist (removed comments from here)
-  const attachments = card.attachments || [];
   const checklists = card.checklists || [];
   const labels = card.labels || [];
 
@@ -115,7 +122,42 @@ export default function CardModal({
     }
   }, [card?.id]);
 
+  // Fetch attachments on mount
+  useEffect(() => {
+    if (card?.id) {
+      setLoadingAttachments(true);
+      attachmentService.getTaskAttachments(card.id)
+        .then(setAttachmentsList)
+        .catch((err) => console.error('Failed to load attachments', err))
+        .finally(() => setLoadingAttachments(false));
+    }
+  }, [card?.id]);
+
   // ...
+
+  const handleFileUpload = async (file: File) => {
+    setIsUploading(true);
+    try {
+      const newAttachment = await attachmentService.uploadAttachment(card.id, file);
+      setAttachmentsList(prev => [...prev, newAttachment]);
+      toast.success(`Uploaded ${file.name}`);
+    } catch (error) {
+      console.error('Upload failed:', error);
+      toast.error('Failed to upload file');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleDeleteAttachment = async (id: string) => {
+    try {
+      await attachmentService.deleteAttachment(id);
+      setAttachmentsList(prev => prev.filter(a => a.id !== id));
+    } catch (error) {
+      console.error('Delete failed:', error);
+      throw error;
+    }
+  };
 
   const addComment = async () => {
     if (!newComment.trim()) return;
@@ -290,6 +332,35 @@ export default function CardModal({
               )}
             </div>
 
+            {/* Attachments Section */}
+            {showAttachments && (
+              <div className="bg-white rounded-lg p-4 shadow-sm">
+                <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                  <Paperclip className="w-4 h-4" />
+                  Attachments
+                  {attachmentsList.length > 0 && (
+                    <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
+                      {attachmentsList.length}
+                    </span>
+                  )}
+                </h3>
+                <FileUploader
+                  onUpload={handleFileUpload}
+                  disabled={isUploading}
+                />
+                {loadingAttachments ? (
+                  <div className="text-center py-4 text-gray-400 text-sm">Loading attachments...</div>
+                ) : (
+                  <div className="mt-3">
+                    <AttachmentList
+                      attachments={attachmentsList}
+                      onDelete={handleDeleteAttachment}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Activity / Comments */}
             <div className="bg-white rounded-lg p-4 shadow-sm">
               <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
@@ -440,9 +511,22 @@ export default function CardModal({
             </div>
 
             {/* Attachment */}
-            <button className="w-full flex items-center gap-3 px-3 py-2 text-left bg-gray-200 hover:bg-gray-300 rounded-lg text-sm font-medium text-gray-700 transition-colors">
-              <Paperclip className="w-4 h-4" />
-              <span>Attachment</span>
+            <button
+              onClick={() => setShowAttachments(!showAttachments)}
+              className={`w-full flex items-center justify-between px-3 py-2 text-left rounded-lg text-sm font-medium transition-colors ${showAttachments
+                ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                }`}
+            >
+              <div className="flex items-center gap-3">
+                <Paperclip className="w-4 h-4" />
+                <span>Attachment</span>
+              </div>
+              {attachmentsList.length > 0 && (
+                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
+                  {attachmentsList.length}
+                </span>
+              )}
             </button>
 
             <div className="border-t pt-3 mt-3">

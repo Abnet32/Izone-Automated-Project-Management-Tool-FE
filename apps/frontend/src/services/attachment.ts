@@ -1,5 +1,6 @@
-import api from '@/lib/axios';
 import { Attachment } from '@/types/attachment';
+
+import { API_BASE_URL, getHeaders } from '@/lib/api/config';
 
 export const attachmentService = {
     uploadAttachment: async (cardId: string, file: File): Promise<Attachment> => {
@@ -7,20 +8,43 @@ export const attachmentService = {
         formData.append('file', file);
         formData.append('card_id', cardId);
 
-        const response = await api.post<Attachment>('/attachments/', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
+        const url = `${API_BASE_URL}/attachments/`;
+        console.log('[AttachmentService] Uploading to:', url);
+        console.log('[AttachmentService] Headers:', getHeaders(true));
+
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: getHeaders(true),
+            body: formData,
         });
-        return response.data;
+
+        if (!res.ok) {
+            throw new Error(await res.text());
+        }
+
+        return res.json();
     },
 
     getTaskAttachments: async (cardId: string): Promise<Attachment[]> => {
-        const response = await api.get<Attachment[]>(`/attachments/task/${cardId}`);
-        return response.data;
+        const res = await fetch(`${API_BASE_URL}/attachments/task/${cardId}`, {
+            headers: getHeaders(),
+        });
+
+        if (!res.ok) {
+            throw new Error(await res.text());
+        }
+
+        return res.json();
     },
 
     deleteAttachment: async (attachmentId: string): Promise<void> => {
-        await api.delete(`/attachments/${attachmentId}`);
+        const res = await fetch(`${API_BASE_URL}/attachments/${attachmentId}`, {
+            method: 'DELETE',
+            headers: getHeaders(),
+        });
+
+        if (!res.ok) {
+            throw new Error(await res.text());
+        }
     },
 };

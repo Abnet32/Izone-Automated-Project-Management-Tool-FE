@@ -1,6 +1,6 @@
 'use client';
 
-import { Board } from "@/lib/types";
+import { Board } from "@/lib/api/boards";
 import { Lock, Globe, Users } from "lucide-react";
 import Link from "next/link";
 
@@ -30,7 +30,7 @@ export const BoardCard = ({ board }: { board: Board }) => {
         style={{ backgroundColor: board.background || "#333" }}
       >
         <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-        
+
         <div className="relative h-full p-4 flex flex-col justify-between">
           <div>
             <h3 className="text-lg font-semibold text-white drop-shadow-md">
@@ -41,7 +41,7 @@ export const BoardCard = ({ board }: { board: Board }) => {
               <span className="text-xs text-white/90">{getPrivacyText()}</span>
             </div>
           </div>
-          
+
           <div className="flex items-center justify-between">
             <span className="text-xs text-white/80">{lists.length} lists</span>
             <span className="text-xs text-white/80">
