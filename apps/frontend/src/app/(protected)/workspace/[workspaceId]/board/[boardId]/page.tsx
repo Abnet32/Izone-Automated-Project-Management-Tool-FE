@@ -27,19 +27,19 @@ export default function BoardPage() {
   useEffect(() => {
     const loadBoardData = async () => {
       if (!boardId) return;
-      
+
       // Skip if already fetching
       if (isFetching) return;
-      
+
       // Fetch board first, then cards
       try {
         setIsFetching(true);
         setLocalError(null);
         setHasAttemptedFetch(true);
-        
+
         // Always fetch board first to ensure we have it (especially on refresh)
         await fetchBoard(boardId);
-        
+
         // Wait for store to update and React to re-render
         // Check if board is now in store (with retries)
         let boardFound = false;
@@ -51,11 +51,11 @@ export default function BoardPage() {
           }
           await new Promise(resolve => setTimeout(resolve, 50));
         }
-        
+
         if (!boardFound) {
           throw new Error('Board not found after fetch');
         }
-        
+
         // Always fetch the cards to ensure they're up to date
         await fetchBoardCards(boardId);
       } catch (error) {
@@ -74,11 +74,11 @@ export default function BoardPage() {
   useEffect(() => {
     if (board) {
       // Use the project_id from board, fallback to boardId
-      const id = board.project_id || boardId;
+      const id = board.id || boardId;
       setProjectId(id);
       console.log('Board data loaded:', {
         boardId: board.id,
-        projectId: board.project_id,
+        projectId: board.id,
         usingProjectId: id
       });
     }
@@ -120,7 +120,7 @@ export default function BoardPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Board Header */}
-      <BoardHeader board={board} />
+      <BoardHeader board={board!} />
 
       {/* Trello Lists & Cards Interface */}
       {projectId ? (

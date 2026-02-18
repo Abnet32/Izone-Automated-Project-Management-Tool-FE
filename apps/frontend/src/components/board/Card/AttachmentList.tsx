@@ -70,7 +70,7 @@ export const AttachmentList: React.FC<AttachmentListProps> = ({
     return (
         <div className="space-y-2">
             {attachments.map((attachment) => {
-                const fileName = attachment.originalName || getFileName(attachment.file_path);
+                const fileName = attachment.file_name || attachment.originalName || getFileName(attachment.file_path);
                 const fileUrl = attachment.url || getFileUrl(attachment.file_path);
                 const mimeType = attachment.mimeType || getMimeType(attachment.file_path);
 

@@ -1,21 +1,5 @@
 // lib/api/lists.ts
-const API_BASE_URL = "/api/backend";
-
-// Get token from localStorage
-function getToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem("auth_token");
-}
-
-// Build headers for requests
-function buildHeaders(): HeadersInit {
-  const token = getToken();
-  console.log('Building headers, token exists:', !!token);
-  return {
-    "Content-Type": "application/json",
-    ...(token && { Authorization: `Bearer ${token}` }),
-  };
-}
+import { API_BASE_URL, getHeaders, getToken } from '@/lib/api/config';
 
 // Interfaces
 export interface List {
@@ -69,7 +53,7 @@ export const listsAPI = {
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
       const res = await fetch(`${API_BASE_URL}/projects/${projectIdStr}/lists/`, {
-        headers: buildHeaders(),
+        headers: getHeaders(),
         signal: controller.signal,
       });
 
@@ -131,7 +115,7 @@ export const listsAPI = {
       projectId: projectIdStr,
       url: `${API_BASE_URL}/projects/${projectIdStr}/lists/`,
       requestData,
-      headers: buildHeaders()
+      headers: getHeaders()
     });
 
     try {
@@ -140,7 +124,7 @@ export const listsAPI = {
 
       const res = await fetch(`${API_BASE_URL}/projects/${projectIdStr}/lists/`, {
         method: "POST",
-        headers: buildHeaders(),
+        headers: getHeaders(),
         body: JSON.stringify(requestData),
         signal: controller.signal,
       });
@@ -210,7 +194,7 @@ export const listsAPI = {
   ): Promise<List> {
     const res = await fetch(`${API_BASE_URL}/projects/${projectId}/lists/${listId}`, {
       method: "PUT",
-      headers: buildHeaders(),
+      headers: getHeaders(),
       body: JSON.stringify(data),
     });
 
@@ -231,7 +215,7 @@ export const listsAPI = {
   async deleteList(projectId: string, listId: string): Promise<void> {
     const res = await fetch(`${API_BASE_URL}/projects/${projectId}/lists/${listId}`, {
       method: "DELETE",
-      headers: buildHeaders(),
+      headers: getHeaders(),
     });
 
     if (res.status === 401) {

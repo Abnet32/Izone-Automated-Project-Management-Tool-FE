@@ -1,26 +1,6 @@
+import { API_BASE_URL, getHeaders } from '@/lib/api/config';
 
 // lib/api/workspaces.ts
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-
-// Safe token getter
-function getToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem("auth_token");
-}
-
-function headers(): HeadersInit {
-  const token = getToken();
-
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-  };
-
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
-
-  return headers;
-}
 
 export interface Workspace {
   id: string;
@@ -42,7 +22,7 @@ export const workspaceAPI = {
   async getAll(): Promise<Workspace[]> {
     try {
       const res = await fetch(`${API_BASE_URL}/workspaces`, {
-        headers: headers(),
+        headers: getHeaders(),
       });
 
       if (res.status === 401) {
@@ -66,7 +46,7 @@ export const workspaceAPI = {
     try {
       const res = await fetch(`${API_BASE_URL}/workspaces`, {
         method: "POST",
-        headers: headers(),
+        headers: getHeaders(),
         body: JSON.stringify(payload),
       });
 
@@ -87,8 +67,6 @@ export const workspaceAPI = {
     }
   },
 
-  // Since you don't have a GET workspace by ID endpoint,
-  // we'll handle it client-side by filtering from the list
   async getById(workspaceId: string): Promise<Workspace | null> {
     try {
       // First get all workspaces
@@ -108,19 +86,3 @@ export const workspaceAPI = {
     }
   }
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
