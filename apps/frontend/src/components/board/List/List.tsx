@@ -102,13 +102,13 @@ export const ListComponent: React.FC<ListComponentProps> = ({
       <div
         ref={setNodeRef}
         style={style}
-        className="w-72 bg-gray-50 rounded-lg shadow-sm flex flex-col h-fit border border-gray-200 flex-shrink-0"
+        className="w-72 bg-secondary rounded-lg shadow-sm flex flex-col h-fit border border-border flex-shrink-0"
       >
         {/* List Header - This is the drag handle for the list */}
         <div
           {...attributes}
           {...listeners}
-          className="p-3 bg-gray-100 rounded-t-lg cursor-grab active:cursor-grabbing"
+          className="p-3 bg-muted rounded-t-lg cursor-grab active:cursor-grabbing"
         >
           {editingTitle ? (
             <div className="flex items-center gap-2">
@@ -118,7 +118,7 @@ export const ListComponent: React.FC<ListComponentProps> = ({
                 onChange={(e) => setTempTitle(e.target.value)}
                 onBlur={handleTitleUpdate}
                 onKeyDown={(e) => e.key === 'Enter' && handleTitleUpdate()}
-                className="flex-1 px-2 py-1 border rounded text-sm font-medium"
+                className="flex-1 px-2 py-1 border border-input rounded text-sm font-medium bg-background text-foreground"
                 autoFocus
                 onClick={(e) => e.stopPropagation()} // Prevent drag start when clicking input
                 onPointerDown={(e) => e.stopPropagation()}
@@ -144,7 +144,7 @@ export const ListComponent: React.FC<ListComponentProps> = ({
         <div className="p-2 flex-1 min-h-[100px] space-y-2 overflow-y-auto max-h-[calc(100vh-300px)]">
           <SortableContext items={cardsIds} strategy={verticalListSortingStrategy}>
             {sortedCards.length === 0 ? (
-              <div className="text-center py-4 text-gray-400 text-sm">
+              <div className="text-center py-4 text-muted-foreground text-sm">
                 No cards yet
               </div>
             ) : (
@@ -171,7 +171,7 @@ export const ListComponent: React.FC<ListComponentProps> = ({
           ) : (
             <button
               onClick={() => setIsAddingCard(true)}
-              className="w-full flex items-center gap-2 px-3 py-2 text-gray-600 hover:bg-gray-200 rounded text-sm"
+              className="w-full flex items-center gap-2 px-3 py-2 text-muted-foreground hover:bg-muted rounded text-sm"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
