@@ -66,7 +66,7 @@ export default function LoginPage() {
 
       {/* Form Section */}
       <div className="flex items-center justify-center p-4 md:p-8">
-        <div className="bg-white rounded-2xl p-8 space-y-6  w-full max-w-lg">
+        <div className="bg-card text-card-foreground border shadow-sm rounded-2xl p-8 space-y-6 w-full max-w-lg">
           <div className="text-center space-y-2">
             <h1 className="text-3xl font-bold tracking-tight">Welcome Back!</h1>
             <p className="text-muted-foreground">
@@ -137,16 +137,11 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-border" />
-            </div>
-
-            <div className="relative flex justify-center text-sm">
-              <span className="bg-white px-4 text-muted-foreground">
-                or continue with
-              </span>
-            </div>
+          <div className="relative my-6 flex items-center">
+            <div className="absolute left-0 right-0 top-1/2 h-px bg-border"></div>
+            <span className="relative px-4 bg-card text-sm text-muted-foreground">
+              or continue with
+            </span>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
