@@ -28,18 +28,29 @@ const TESTIMONIALS = [
 
 export function TestimonialsSection() {
   return (
-    <section id="testimonials" className="px-6 py-20 md:py-32">
-      <div className="mx-auto max-w-5xl">
+    <section
+      id="testimonials"
+      className="px-6 py-20 md:py-32 bg-background dark:bg-gray-900 transition-colors"
+    >
+      <div className="mx-auto max-w-6xl">
+        {/* Section Header */}
         <div className="mx-auto mb-16 max-w-2xl text-center">
-          <p className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">Testimonials</p>
-          <h2 className="text-3xl sm:text-4xl font-serif font-semibold text-foreground tracking-tight">
+          <p className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground dark:text-gray-400">
+            Testimonials
+          </p>
+          <h2 className="text-3xl sm:text-4xl font-serif font-semibold text-foreground dark:text-gray-100 tracking-tight">
             Loved by teams everywhere
           </h2>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-3">
-          {TESTIMONIALS.map((t, i) => (
-            <TestimonialCard key={i} testimonial={t} index={i} />
+        {/* Testimonials Grid */}
+        <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+          {TESTIMONIALS.map((testimonial, index) => (
+            <TestimonialCard
+              key={index}
+              testimonial={testimonial}
+              index={index}
+            />
           ))}
         </div>
       </div>
