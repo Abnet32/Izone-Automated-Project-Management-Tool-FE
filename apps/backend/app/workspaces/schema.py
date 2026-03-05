@@ -70,7 +70,7 @@ class WorkspaceInvitationCreate(BaseModel):
     email: EmailStr
     role: WorkspaceRole = WorkspaceRole.member
 
-# Data for the API response
+
 class WorkspaceInvitationResponse(BaseModel):
     id: UUID
     workspace_id: UUID
@@ -80,6 +80,11 @@ class WorkspaceInvitationResponse(BaseModel):
     is_accepted: bool
     expires_at: datetime
     created_at: datetime
-    
-    # Required for Pydantic V2 (which your logs show you are using)
+
     model_config = ConfigDict(from_attributes=True)
+
+
+
+class RoleUpdateRequest(BaseModel):
+
+    role: RoleEnum

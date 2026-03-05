@@ -4,7 +4,12 @@ from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.models.user import User
 from app.auth import schema
-from app.auth.security import hash_password, verify_password, create_access_token, get_current_user
+from app.utils.security import (
+    create_access_token,
+    get_current_user as get_authenticated_user,
+    hash_password,
+    verify_password,
+)
 import uuid
 from app.workspaces.schema import RoleEnum 
 from app.models import Workspace, WorkspaceMember
@@ -64,5 +69,5 @@ def login(user: schema.UserLogin, db: Session = Depends(get_db)):
     return {"access_token": access_token, "token_type": "bearer"}
 
 @router.get("/me", response_model=schema.User)
-def get_current_user(current_user: schema.User = Depends(get_current_user)):
+def read_current_user(current_user: schema.User = Depends(get_authenticated_user)):
     return current_user
