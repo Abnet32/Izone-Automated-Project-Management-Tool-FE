@@ -278,7 +278,7 @@ export default function SignupPage() {
 
       {/* Form Section */}
       <div className="flex items-center justify-center p-4 md:p-8">
-        <div className="bg-white rounded-2xl p-8 space-y-6 w-full max-w-lg">
+        <div className="bg-card text-card-foreground border shadow-sm rounded-2xl p-8 space-y-6 w-full max-w-lg">
           <div className="text-center space-y-2">
             <h1 className="text-3xl font-bold tracking-tight">Create your Account</h1>
             <p className="text-muted-foreground">Sign up to get started</p>

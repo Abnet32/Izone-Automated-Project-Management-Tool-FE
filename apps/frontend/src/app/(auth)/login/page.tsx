@@ -67,7 +67,7 @@ export default function LoginPage() {
 
       {/* Form Section */}
       <div className="flex items-center justify-center p-4 md:p-8">
-        <div className="bg-white rounded-2xl p-8 space-y-6  w-full max-w-lg">
+        <div className="bg-card text-card-foreground border shadow-sm rounded-2xl p-8 space-y-6 w-full max-w-lg">
           <div className="text-center space-y-2">
             <h1 className="text-3xl font-bold tracking-tight">Welcome Back!</h1>
             <p className="text-muted-foreground">Sign in to your account to continue</p>
@@ -133,7 +133,7 @@ export default function LoginPage() {
 
           <div className="relative my-6 flex items-center">
             <div className="absolute left-0 right-0 top-1/2 h-px bg-border"></div>
-            <span className="relative px-4 bg-white text-sm text-muted-foreground">
+            <span className="relative px-4 bg-card text-sm text-muted-foreground">
               or continue with
             </span>
           </div>

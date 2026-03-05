@@ -6,7 +6,7 @@ from app.models.card import Card
 from app.models.task import Task, TaskStatus, TaskPriority
 from app.models.comment import Comment
 from app.models.attachment import Attachment
-from app.models.time_entry import TimeEntry
+from app.models.time_entry import TimeEntry, CardTimeEntry
 
 
 __all__ = [
@@ -18,5 +18,5 @@ __all__ = [
     "Task", "TaskStatus", "TaskPriority",
     "Comment",
     "Attachment",
-    "TimeEntry"
+    "TimeEntry", "CardTimeEntry"
 ]

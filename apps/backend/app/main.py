@@ -12,8 +12,9 @@ from .lists import routes as list_router
 from app.cards.routes import router as card_router
 from app.attachment.routes import router as attachment_router
 from .auth.google_auth import router as google_auth_router
+from app.time_entries.routes import router as time_entries_router
 
-
+# Create all database tables
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
@@ -31,6 +32,8 @@ app.include_router(comment_router.router)
 app.include_router(list_router.router)
 app.include_router(card_router)
 app.include_router(attachment_router)
+app.include_router(google_auth_router)
+app.include_router(time_entries_router)
 
 
 @app.get("/")
