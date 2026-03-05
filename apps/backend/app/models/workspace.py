@@ -57,7 +57,7 @@ class Workspace(Base):
 
 
 
-# ------------------- WorkspaceMember -------------------
+
 class WorkspaceMember(Base):
     __tablename__ = "workspace_members"
 
@@ -83,7 +83,7 @@ class WorkspaceInvitation(Base):
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     workspace_id = Column(UUID(as_uuid=True), ForeignKey("workspaces.id", ondelete="CASCADE"), nullable=False)
-    token = Column(String, unique=True, nullable=False, default=lambda: uuid.uuid4().hex)
+    token = Column(String, unique=True, nullable=False, default=None, index=True)
     role = Column(Enum(WorkspaceRole), default=WorkspaceRole.member)
     
     invited_user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
@@ -93,7 +93,7 @@ class WorkspaceInvitation(Base):
     expires_at = Column(DateTime(timezone=True), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    # Relationships
+   
     workspace = relationship("Workspace", back_populates="invitations") 
     
     invited_by = relationship(
@@ -107,5 +107,5 @@ class WorkspaceInvitation(Base):
         foreign_keys=[invited_user_id], 
         back_populates="received_invitations"
     )
-    # It creates a virtual 'email' field that maps to invitee.email
+    
     email = association_proxy("invitee", "email")

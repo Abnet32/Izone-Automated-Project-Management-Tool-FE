@@ -55,7 +55,7 @@ export default function LoginPage() {
       <div className="hidden md:flex items-center justify-center p-4">
         <div className="relative w-full h-full min-h-[600px] rounded-3xl overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-100">
           <Image
-            src="/mask-group.png" 
+            src="/mask-group.png"
             alt="Login Illustration"
             fill
             className="object-cover"
@@ -64,7 +64,7 @@ export default function LoginPage() {
           />
         </div>
       </div>
-      
+
       {/* Form Section */}
       <div className="flex items-center justify-center p-4 md:p-8">
         <div className="bg-white rounded-2xl p-8 space-y-6  w-full max-w-lg">
@@ -114,7 +114,7 @@ export default function LoginPage() {
               )}
             </div>
 
-           <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <Checkbox id="remember" />
                 <Label htmlFor="remember" className="cursor-pointer">
@@ -156,7 +156,7 @@ export default function LoginPage() {
 
           <div className="text-center text-sm mt-4">
             Don't have an account?{" "}
-            <button 
+            <button
               onClick={() => handleClickSignUp()}
               className="text-blue-600 hover:text-blue-700 hover:underline transition-colors cursor-pointer"
             >

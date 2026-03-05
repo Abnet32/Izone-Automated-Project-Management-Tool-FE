@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { MembersList } from "@/components/workspace/MembersList";
 import { AddMemberDialog } from "@/components/workspace/AddMemberDialog";
 import { membersAPI, type MemberOut, type RoleEnum } from "@/lib/api/members";
+import { inviteService } from "@/services/invite.service";
 import { workspaceAPI, type Workspace } from "@/lib/api/workspaces";
 
 export default function WorkspaceMembersPage() {
@@ -68,12 +69,14 @@ export default function WorkspaceMembersPage() {
     }, [fetchData, workspaceId]);
 
     const handleAddMember = async (email: string, role: RoleEnum) => {
-        const newMember = await membersAPI.addMember(workspaceId, { email, role });
-        setMembers((prev) => {
-            // Prevent adding duplicate if it already exists (e.g. backend returned success but same ID)
-            if (prev.find(m => m.user_id === newMember.user_id)) return prev;
-            return [...prev, newMember];
-        });
+        try {
+            await inviteService.sendInvite(workspaceId, { email, role });
+            toast.success(`Invitation sent successfully to ${email}`);
+        } catch (err) {
+            console.error("Failed to send invite:", err);
+            toast.error(err instanceof Error ? err.message : "Failed to send invitation");
+            throw err; // throw so the dialog knows to keep open or show error
+        }
     };
 
     const handleRemoveMember = async (userId: string) => {

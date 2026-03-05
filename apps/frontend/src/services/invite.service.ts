@@ -1,9 +1,10 @@
-import type { AcceptInviteResponse, InviteRequest, WorkspaceInvitationResponse } from '../types/invite'; // Adjust the path as needed
+import type { AcceptInviteResponse, InviteRequest, WorkspaceInvitationResponse } from '../types/invite';
+import { getAuthToken } from '../lib/auth';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 const getAuthHeaders = () => {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  const token = getAuthToken();
   return {
     'Content-Type': 'application/json',
     ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
