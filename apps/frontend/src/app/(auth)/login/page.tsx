@@ -14,6 +14,7 @@ import { loginSchema, type LoginFormData } from "@/lib/validations/auth";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 export default function LoginPage() {
+  const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
   const [showPassword, setShowPassword] = useState(false);
   const { login, isLoading } = useAuth();
   const router = useRouter();
@@ -137,26 +138,28 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <div className="relative my-6 flex items-center">
-            <div className="absolute left-0 right-0 top-1/2 h-px bg-border"></div>
-            <span className="relative px-4 bg-card text-sm text-muted-foreground">
-              or continue with
+          <div className="flex items-center my-3">
+            <div className="flex-1 h-px bg-muted-foreground/40" />
+            <span className="mx-3 text-xs uppercase text-muted-foreground">
+              Or continue with
             </span>
+            <div className="flex-1 h-px bg-muted-foreground/40" />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <Button
               variant="outline"
-              className="w-full flex items-center justify-center gap-2"
+              className="w-full flex items-center justify-center gap-2 cursor-pointer"
+              onClick={() => {
+                window.location.href = `${base}/auth/github/login`;
+              }}
             >
               <Github className="h-4 w-4" /> Github
             </Button>
             <Button
               variant="outline"
-              className="w-full flex items-center justify-center gap-2"
+              className="w-full flex items-center justify-center gap-2 cursor-pointer"
               onClick={() => {
-                const base =
-                  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
                 window.location.href = `${base}/auth/google/login`;
               }}
             >
