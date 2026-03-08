@@ -4,17 +4,12 @@ import { boardsAPI, type Board, type CreateBoardData } from "@/lib/api/boards";
 import { cardsAPI, type Card as ApiCard } from "@/lib/api/cards";
 import { listsAPI, type List as ApiList } from "@/lib/api/lists";
 
-// Minimal local types to avoid missing imports
+// Local types
 type ListStatus = "todo" | "in-progress" | "review" | "done";
 
-// Extended Card type for UI usage (compatibility)
-// We ensure it has everything ApiCard has, plus legacy fields if needed
 interface Card extends ApiCard {
-  // UI might expect 'name' aliased to 'title'
   name: string;
-  // UI might expect 'status' though it's list-based now
   status: ListStatus;
-  // UI might expect project_id
   project_id: string;
 }
 
@@ -23,7 +18,7 @@ interface List {
   title: string;
   position: number;
   board_id: string;
-  status: ListStatus; // Kept for UI compatibility, default to 'todo'
+  status: ListStatus;
   cards?: Card[];
   created_at: string;
   updated_at: string;
@@ -55,12 +50,12 @@ interface BoardStore {
   deleteBoard: (boardId: string) => Promise<void>;
 }
 
-// Helper mappers
+// Helpers
 const mapApiCardToCard = (apiCard: ApiCard, projectId: string): Card => ({
   ...apiCard,
-  name: apiCard.title, // Map title to name for UI
-  status: 'todo', // Default, logic should rely on List ID
-  project_id: projectId, // Passed from context
+  name: apiCard.title,
+  status: "todo",
+  project_id: projectId,
   list_id: apiCard.list_id,
 });
 
@@ -69,121 +64,78 @@ const mapApiListToList = (apiList: ApiList): List => ({
   title: apiList.title,
   position: apiList.position,
   board_id: apiList.project_id,
-  status: 'todo', // Default
+  status: "todo",
   created_at: apiList.created_at,
   updated_at: apiList.updated_at,
   cards: [],
 });
 
-const store: StateCreator<BoardStore, [], [], BoardStore> = (
-  set: SetState<BoardStore>,
-  get: GetState<BoardStore>
-) => ({
+// Zustand store
+const store: StateCreator<BoardStore, [], [], BoardStore> = (set, get) => ({
   boards: [],
   isLoading: false,
   error: null,
 
-  fetchWorkspaceBoards: async (workspaceId: string) => {
+  fetchWorkspaceBoards: async (workspaceId) => {
     set({ isLoading: true, error: null });
     try {
       const backendBoards = await boardsAPI.getWorkspaceBoards(workspaceId);
-      const boardsWithLists: BoardWithLists[] = backendBoards.map((board) => ({
-        ...board,
-        lists: [], // Start with empty lists
-      }));
+      const boardsWithLists = backendBoards.map((board) => ({ ...board, lists: [] }));
       set({ boards: boardsWithLists, isLoading: false });
 
-      // Fetch details (lists & cards) for each board in the background
-      // This populates the card/list counts on the dashboard
-      backendBoards.forEach(board => {
-        get().fetchBoardCards(board.id);
-      });
+      backendBoards.forEach(board => get().fetchBoardCards(board.id));
     } catch (error: any) {
-      set({
-        error: error?.message || "Failed to fetch boards",
-        isLoading: false,
-      });
+      set({ error: error?.message || "Failed to fetch boards", isLoading: false });
     }
   },
 
-  fetchBoard: async (boardId: string) => {
+  fetchBoard: async (boardId) => {
     set({ isLoading: true, error: null });
     try {
       const board = await boardsAPI.getBoard(boardId);
-
-      // Ensure local object matches expected structure
-      const boardWithLists: BoardWithLists = {
-        ...board,
-        lists: (board as any).lists || [],
-      };
-
-      set((state: BoardStore) => ({
-        boards: [
-          ...state.boards.filter((b: BoardWithLists) => b.id !== boardId),
-          boardWithLists
-        ],
+      const boardWithLists: BoardWithLists = { ...board, lists: (board as any).lists || [] };
+      set((state) => ({
+        boards: [...state.boards.filter(b => b.id !== boardId), boardWithLists],
         isLoading: false
       }));
     } catch (error: any) {
-      console.error("Error fetching board:", error);
-      set({
-        error: error?.message || "Failed to fetch board",
-        isLoading: false
-      });
+      set({ error: error?.message || "Failed to fetch board", isLoading: false });
     }
   },
 
-  fetchBoardCards: async (boardId: string) => {
+  fetchBoardCards: async (boardId) => {
     try {
-      // 1. Fetch Lists
       const apiLists = await listsAPI.getProjectLists(boardId);
-
-      // 2. Fetch Cards for each list
-      // We do this in parallel because we need to populate all lists
-      const listsWithCards = await Promise.all(
-        apiLists.map(async (apiList) => {
-          const list = mapApiListToList(apiList);
-          try {
-            const apiCards = await cardsAPI.getListCards(list.id);
-            const cards = apiCards.map(c => mapApiCardToCard(c, boardId));
-            // Sort cards by position
-            cards.sort((a, b) => a.position - b.position);
-            return { ...list, cards };
-          } catch (e) {
-            console.error(`Failed to fetch cards for list ${list.id}`, e);
-            return list;
-          }
-        })
-      );
-
-      // Sort lists by position
-      listsWithCards.sort((a, b) => a.position - b.position);
-
-      set((state: BoardStore) => ({
-        boards: state.boards.map((board: BoardWithLists) => {
-          if (board.id !== boardId) return board;
-          return { ...board, lists: listsWithCards };
-        }),
+      const listsWithCards = await Promise.all(apiLists.map(async (apiList) => {
+        const list = mapApiListToList(apiList);
+        try {
+          const apiCards = await cardsAPI.getListCards(list.id);
+          const cards = apiCards.map(c => mapApiCardToCard(c, boardId)).sort((a,b) => a.position - b.position);
+          return { ...list, cards };
+        } catch {
+          return list;
+        }
+      }));
+      listsWithCards.sort((a,b) => a.position - b.position);
+      set((state) => ({
+        boards: state.boards.map(board => board.id === boardId ? { ...board, lists: listsWithCards } : board)
       }));
     } catch (error) {
       console.error("Error fetching board content:", error);
     }
   },
 
-  addBoard: async (boardData: CreateBoardData & { workspaceId?: string; background?: string; color?: string; privacy?: string }) => {
+  addBoard: async (boardData) => {
     try {
-      // Create board on backend first and wait for the real ID
       const realBoard = await boardsAPI.createBoard({
         name: boardData.name,
         description: boardData.description,
         background_color: boardData.background || boardData.color || "#0079bf",
-        workspace_id: boardData.workspaceId || boardData.workspace_id || "default",
+        workspace_id: boardData.workspaceId || "default",
       });
 
-      console.log("✅ Board created on backend:", realBoard.id);
-
       const newBoard: BoardWithLists = {
-        id: realBoard.id, // Use the REAL ID from backend
+        id: realBoard.id,
         name: realBoard.name,
         title: realBoard.name,
         description: realBoard.description,
@@ -199,19 +151,18 @@ const store: StateCreator<BoardStore, [], [], BoardStore> = (
         lists: [],
       };
 
-      set((state: BoardStore) => ({ boards: [newBoard, ...state.boards] }));
-      return realBoard.id; // Return the REAL ID
+      set((state) => ({ boards: [newBoard, ...state.boards] }));
+      return realBoard.id;
     } catch (error) {
-      console.error("❌ Backend create failed:", error);
-      throw error; // Re-throw so the caller knows it failed
+      console.error("Backend create failed:", error);
+      throw error;
     }
   },
 
-  addList: async (boardId: string, title: string) => {
-    const board = get().boards.find((b: BoardWithLists) => b.id === boardId);
+  addList: async (boardId, title) => {
+    const board = get().boards.find(b => b.id === boardId);
     const position = board?.lists?.length || 0;
 
-    // Optimistic Update
     const tempListId = `temp-list-${Date.now()}`;
     const newList: List = {
       id: tempListId,
@@ -224,176 +175,124 @@ const store: StateCreator<BoardStore, [], [], BoardStore> = (
       updated_at: new Date().toISOString(),
     };
 
-    set((state: BoardStore) => ({
-      boards: state.boards.map((b: BoardWithLists) =>
-        b.id === boardId ? { ...b, lists: [...(b.lists || []), newList] } : b
-      )
+    set(state => ({
+      boards: state.boards.map(b => b.id === boardId ? { ...b, lists: [...(b.lists || []), newList] } : b)
     }));
 
     try {
       const apiList = await listsAPI.createList(boardId, { title, position });
       const realList = mapApiListToList(apiList);
 
-      set((state: BoardStore) => ({
-        boards: state.boards.map((b: BoardWithLists) =>
-          b.id === boardId ? {
-            ...b,
-            lists: b.lists?.map((l: List) => l.id === tempListId ? { ...realList, cards: [] } : l)
-          } : b
-        )
+      set(state => ({
+        boards: state.boards.map(b => b.id === boardId ? {
+          ...b,
+          lists: b.lists?.map(l => l.id === tempListId ? { ...realList, cards: [] } : l)
+        } : b)
       }));
     } catch (error) {
       console.error("Failed to add list:", error);
-      // Revert optimistic update
-      set((state: BoardStore) => ({
-        boards: state.boards.map((b: BoardWithLists) =>
-          b.id === boardId ? { ...b, lists: b.lists?.filter((l: List) => l.id !== tempListId) } : b
-        )
+      set(state => ({
+        boards: state.boards.map(b => b.id === boardId ? { ...b, lists: b.lists?.filter(l => l.id !== tempListId) } : b)
       }));
     }
   },
 
-  updateList: async (boardId: string, listId: string, updates: Partial<List>) => {
-    // Optimistic
-    set((state: BoardStore) => ({
-      boards: state.boards.map((b: BoardWithLists) =>
-        b.id === boardId ? {
-          ...b,
-          lists: b.lists?.map((l: List) => l.id === listId ? { ...l, ...updates } : l)
-        } : b
-      )
+  updateList: async (boardId, listId, updates) => {
+    set(state => ({
+      boards: state.boards.map(b => b.id === boardId ? {
+        ...b,
+        lists: b.lists?.map(l => l.id === listId ? { ...l, ...updates } : l)
+      } : b)
     }));
-
     try {
-      await listsAPI.updateList(boardId, listId, {
-        title: updates.title,
-        position: updates.position
-      });
+      await listsAPI.updateList(boardId, listId, { title: updates.title, position: updates.position });
     } catch (error) {
       console.error("Failed to update list:", error);
-      // Could revert here if needed
     }
   },
 
-  deleteList: async (boardId: string, listId: string) => {
-    // Optimistic
+  deleteList: async (boardId, listId) => {
     const previousLists = get().boards.find(b => b.id === boardId)?.lists;
-    set((state: BoardStore) => ({
-      boards: state.boards.map((b: BoardWithLists) =>
-        b.id === boardId ? { ...b, lists: b.lists?.filter((l: List) => l.id !== listId) } : b
-      )
+    set(state => ({
+      boards: state.boards.map(b => b.id === boardId ? { ...b, lists: b.lists?.filter(l => l.id !== listId) } : b)
     }));
-
     try {
       await listsAPI.deleteList(boardId, listId);
-    } catch (error) {
-      console.error("Failed to delete list:", error);
-      // Revert
-      if (previousLists) {
-        set((state) => ({
-          boards: state.boards.map(b =>
-            b.id === boardId ? { ...b, lists: previousLists } : b
-          )
-        }));
-      }
+    } catch {
+      if (previousLists) set(state => ({
+        boards: state.boards.map(b => b.id === boardId ? { ...b, lists: previousLists } : b)
+      }));
     }
   },
 
-  addCard: async (boardId: string, listId: string, title: string) => {
-    const board = get().boards.find((b: BoardWithLists) => b.id === boardId);
-    const list = board?.lists?.find((l: List) => l.id === listId);
+  addCard: async (boardId, listId, title) => {
+    const board = get().boards.find(b => b.id === boardId);
+    const list = board?.lists?.find(l => l.id === listId);
     const position = list?.cards?.length || 0;
 
-    // Optimistic
     const tempCardId = `temp-card-${Date.now()}`;
-    const optimCard: Card = {
+    const tempCard: Card = {
       id: tempCardId,
       title,
       name: title,
-      status: 'todo',
+      status: "todo",
       project_id: boardId,
       list_id: listId,
       position,
       created_by: "current_user",
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-      priority: 'medium',
+      priority: "medium",
       description: "",
-      due_date: undefined
+      due_date: undefined,
     };
 
-    set((state: BoardStore) => ({
-      boards: state.boards.map((b: BoardWithLists) => {
-        if (b.id !== boardId) return b;
-        return {
-          ...b,
-          lists: b.lists?.map((l: List) => (l.id === listId ? { ...l, cards: [...(l.cards || []), optimCard] } : l)),
-        };
-      }),
+    set(state => ({
+      boards: state.boards.map(b => b.id === boardId ? {
+        ...b,
+        lists: b.lists?.map(l => l.id === listId ? { ...l, cards: [...(l.cards || []), tempCard] } : l)
+      } : b)
     }));
 
     try {
-      const newApiCard = await cardsAPI.createCard(listId, {
-        title,
-        description: "",
-        position,
-        priority: "medium",
-      });
-
+      const newApiCard = await cardsAPI.createCard(listId, { title, description: "", position, priority: "medium" });
       const newCard = mapApiCardToCard(newApiCard, boardId);
 
-      set((state: BoardStore) => ({
-        boards: state.boards.map((b: BoardWithLists) => {
-          if (b.id !== boardId) return b;
-          return {
-            ...b,
-            lists: b.lists?.map((l: List) => (l.id === listId ? {
-              ...l,
-              cards: l.cards?.map(c => c.id === tempCardId ? newCard : c)
-            } : l)),
-          };
-        }),
+      set(state => ({
+        boards: state.boards.map(b => b.id === boardId ? {
+          ...b,
+          lists: b.lists?.map(l => l.id === listId ? {
+            ...l,
+            cards: l.cards?.map(c => c.id === tempCardId ? newCard : c)
+          } : l)
+        } : b)
       }));
     } catch (error) {
       console.error("Backend create card failed:", error);
-      // Remove optimistic card
-      set((state: BoardStore) => ({
-        boards: state.boards.map((b: BoardWithLists) => {
-          if (b.id !== boardId) return b;
-          return {
-            ...b,
-            lists: b.lists?.map((l: List) => (l.id === listId ? { ...l, cards: l.cards?.filter(c => c.id !== tempCardId) } : l)),
-          };
-        }),
+      set(state => ({
+        boards: state.boards.map(b => b.id === boardId ? {
+          ...b,
+          lists: b.lists?.map(l => l.id === listId ? { ...l, cards: l.cards?.filter(c => c.id !== tempCardId) } : l)
+        } : b)
       }));
     }
   },
 
-  updateCard: async (boardId: string, listId: string, cardId: string, updates: Partial<Card>) => {
-    // Optimistic
-    set((state: BoardStore) => ({
-      boards: state.boards.map((board: BoardWithLists) => {
-        if (board.id !== boardId) return board;
-        return {
-          ...board,
-          lists: board.lists?.map((list: List) => {
-            // If card moves list, we might need to handle that, but here we assume simple update
-            // If listId changes, we need more complex logic (remove from old, add to new)
-            // For now, assuming in-place update or handled by dnd separate logic
-            if (list.id !== listId) return list;
-            return {
-              ...list,
-              cards: list.cards?.map((card: Card) => (card.id === cardId ? { ...card, ...updates } : card)),
-            };
-          }),
-        };
-      }),
+  updateCard: async (boardId, listId, cardId, updates) => {
+    set(state => ({
+      boards: state.boards.map(b => b.id === boardId ? {
+        ...b,
+        lists: b.lists?.map(l => l.id === listId ? {
+          ...l,
+          cards: l.cards?.map(c => c.id === cardId ? { ...c, ...updates } : c)
+        } : l)
+      } : b)
     }));
 
     try {
       const updateData: Record<string, any> = {};
       if (updates.title) updateData.title = updates.title;
-      if (updates.name && !updates.title) updateData.title = updates.name; // Fallback
+      if (updates.name && !updates.title) updateData.title = updates.name;
       if (updates.description !== undefined) updateData.description = updates.description;
       if (updates.due_date !== undefined) updateData.due_date = updates.due_date;
       if (updates.priority !== undefined) updateData.priority = updates.priority;
@@ -403,56 +302,36 @@ const store: StateCreator<BoardStore, [], [], BoardStore> = (
       await cardsAPI.updateCard(listId, cardId, updateData);
     } catch (error) {
       console.error("Backend update card failed:", error);
-      // Revert if critical
     }
   },
 
-  removeCard: async (boardId: string, listId: string, cardId: string) => {
+  removeCard: async (boardId, listId, cardId) => {
     const previousBoard = get().boards.find(b => b.id === boardId);
-
-    set((state: BoardStore) => ({
-      boards: state.boards.map((board: BoardWithLists) => {
-        if (board.id !== boardId) return board;
-        return {
-          ...board,
-          lists: board.lists?.map((list: List) => {
-            if (list.id !== listId) return list;
-            return { ...list, cards: list.cards?.filter((card: Card) => card.id !== cardId) };
-          }),
-        };
-      }),
+    set(state => ({
+      boards: state.boards.map(b => b.id === boardId ? {
+        ...b,
+        lists: b.lists?.map(l => l.id === listId ? { ...l, cards: l.cards?.filter(c => c.id !== cardId) } : l)
+      } : b)
     }));
-
     try {
       await cardsAPI.deleteCard(listId, cardId);
-    } catch (error) {
-      console.error("Backend delete card failed:", error);
-      if (previousBoard) {
-        set((state) => ({
-          boards: state.boards.map(b => b.id === boardId ? previousBoard : b)
-        }));
-      }
+    } catch {
+      if (previousBoard) set(state => ({
+        boards: state.boards.map(b => b.id === boardId ? previousBoard : b)
+      }));
     }
   },
 
-  duplicateCard: async (boardId: string, listId: string, cardId: string) => {
-    // We can't optimistically generate an ID reliably without backend sync first, 
-    // but we can pessimistic update by fetching the new card right after duplication.
+  duplicateCard: async (boardId, listId, cardId) => {
     try {
       const newApiCard = await cardsAPI.duplicateCard(listId, cardId);
       const newCard = mapApiCardToCard(newApiCard, boardId);
 
-      set((state: BoardStore) => ({
-        boards: state.boards.map((b: BoardWithLists) => {
-          if (b.id !== boardId) return b;
-          return {
-            ...b,
-            lists: b.lists?.map((l: List) => (l.id === listId ? {
-              ...l,
-              cards: [...(l.cards || []), newCard]
-            } : l)),
-          };
-        }),
+      set(state => ({
+        boards: state.boards.map(b => b.id === boardId ? {
+          ...b,
+          lists: b.lists?.map(l => l.id === listId ? { ...l, cards: [...(l.cards || []), newCard] } : l)
+        } : b)
       }));
     } catch (error) {
       console.error("Backend duplicate card failed:", error);
@@ -460,54 +339,33 @@ const store: StateCreator<BoardStore, [], [], BoardStore> = (
     }
   },
 
-  getWorkspaceBoards: (workspaceId: string) => get().boards.filter((board: BoardWithLists) => board.workspace_id === workspaceId),
+  getWorkspaceBoards: (workspaceId) => get().boards.filter(b => b.workspace_id === workspaceId),
+  getWorkspaceBoardCount: (workspaceId) => get().boards.filter(b => b.workspace_id === workspaceId).length,
 
-  getWorkspaceBoardCount: (workspaceId: string) => get().boards.filter((board: BoardWithLists) => board.workspace_id === workspaceId).length,
-
-  deleteBoard: async (boardId: string) => {
+  deleteBoard: async (boardId) => {
     const previousBoards = get().boards;
-    // Optimistic removal
-    set((state: BoardStore) => ({
-      boards: state.boards.filter((b: BoardWithLists) => b.id !== boardId)
-    }));
+    set(state => ({ boards: state.boards.filter(b => b.id !== boardId) }));
     try {
       await boardsAPI.deleteBoard(boardId);
-    } catch (error) {
-      console.error("Failed to delete board:", error);
-      // Revert
+    } catch {
       set({ boards: previousBoards });
-      throw error;
+      throw new Error("Failed to delete board");
     }
   },
 
-  updateBoard: async (boardId: string, updates: Partial<Board>) => {
-    // Optimistic Update
-    set((state: BoardStore) => ({
-      boards: state.boards.map((b: BoardWithLists) =>
-        b.id === boardId ? { ...b, ...updates } : b
-      )
+  updateBoard: async (boardId, updates) => {
+    set(state => ({
+      boards: state.boards.map(b => b.id === boardId ? { ...b, ...updates } : b)
     }));
 
     try {
-      // Map 'title' back to 'name' for backend if needed
       const apiUpdates: any = { ...updates };
       if (updates.title) apiUpdates.name = updates.title;
-
       await boardsAPI.updateBoard(boardId, apiUpdates);
-    } catch (error) {
-      console.error("Failed to update board:", error);
-      // We could revert here, but for simplicity we'll just log
+    } catch {
+      console.error("Failed to update board");
     }
   },
 });
 
 export const useBoardStore = create<BoardStore>(store);
-
-// Convenience helpers
-export async function fetchBoard(boardId: string): Promise<Board> {
-  return boardsAPI.getBoard(boardId);
-}
-
-export async function fetchWorkspaceBoards(workspaceId: string): Promise<Board[]> {
-  return boardsAPI.getWorkspaceBoards(workspaceId);
-}
