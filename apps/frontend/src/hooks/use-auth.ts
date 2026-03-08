@@ -1,9 +1,9 @@
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { LoginCredentials, SignupData, AuthResponse } from '@/lib/api/auth';
-import { toast } from 'sonner';
-import { authApi } from '@/lib/api/auth-api';
-import { removeCookie } from '@/lib/utils';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { LoginCredentials, SignupData, AuthResponse } from "@/lib/api/auth";
+import { toast } from "sonner";
+import { authApi } from "@/lib/api/auth-api";
+import { removeCookie } from "@/lib/utils";
 
 export function useAuth() {
   const [isLoading, setIsLoading] = useState(false);
@@ -11,28 +11,25 @@ export function useAuth() {
   const router = useRouter();
 
   const clearSession = () => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === "undefined") return;
 
+    localStorage.removeItem("auth_token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("lastWorkspaceId");
 
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('lastWorkspaceId');
+    removeCookie("auth_token");
 
-
-    removeCookie('auth_token');
-
-    document.cookie = "auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT";
+    document.cookie =
+      "auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT";
     document.cookie = "auth_token=; expires=Thu, 01 Jan 1970 00:00:01 GMT";
 
-
-    Object.keys(localStorage).forEach(key => {
-      if (key.startsWith('auth_') || key.includes('token')) {
+    Object.keys(localStorage).forEach((key) => {
+      if (key.startsWith("auth_") || key.includes("token")) {
         localStorage.removeItem(key);
       }
     });
 
-
-    document.cookie.split(";").forEach(cookie => {
+    document.cookie.split(";").forEach((cookie) => {
       const [name] = cookie.trim().split("=");
       if (name) {
         document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
@@ -44,37 +41,36 @@ export function useAuth() {
     setIsLoading(true);
     setError(null);
 
-
     clearSession();
 
     try {
       const response: AuthResponse = await authApi.login(credentials);
 
-
       if (response.access_token) {
         // Set in localStorage for client-side access
-        localStorage.setItem('auth_token', response.access_token);
+        localStorage.setItem("auth_token", response.access_token);
 
         // Set httpOnly cookie via API route for server-side access
-        await fetch('/api/auth/set-cookie', {
-          method: 'POST',
+        await fetch("/api/auth/set-cookie", {
+          method: "POST",
+          credentials: "include", // ⭐ important
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({ token: response.access_token }),
         });
 
         if (response.user) {
-          localStorage.setItem('user', JSON.stringify(response.user));
+          localStorage.setItem("user", JSON.stringify(response.user));
         }
       }
 
-      toast.success('Login successful!');
-      router.push('/dashboard');
+      toast.success("Login successful!");
+      router.push("/dashboard");
 
       return response;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Login failed';
+      const errorMessage = err instanceof Error ? err.message : "Login failed";
       setError(errorMessage);
       toast.error(errorMessage);
       throw err;
@@ -87,37 +83,35 @@ export function useAuth() {
     setIsLoading(true);
     setError(null);
 
-
     clearSession();
 
     try {
       const response: AuthResponse = await authApi.signup(data);
 
-
       if (response.access_token) {
         // Set in localStorage for client-side access
-        localStorage.setItem('auth_token', response.access_token);
+        localStorage.setItem("auth_token", response.access_token);
 
         // Set httpOnly cookie via API route for server-side access
-        await fetch('/api/auth/set-cookie', {
-          method: 'POST',
+        await fetch("/api/auth/set-cookie", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({ token: response.access_token }),
         });
 
         if (response.user) {
-          localStorage.setItem('user', JSON.stringify(response.user));
+          localStorage.setItem("user", JSON.stringify(response.user));
         }
       }
 
-      toast.success('Account created successfully!');
-      router.push('/dashboard');
-
+      toast.success("Account created successfully!");
+      router.push("/dashboard");
+      // window.location.href = "/dashboard";
       return response;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Signup failed';
+      const errorMessage = err instanceof Error ? err.message : "Signup failed";
       setError(errorMessage);
       toast.error(errorMessage);
       throw err;
@@ -128,13 +122,13 @@ export function useAuth() {
 
   const logout = async () => {
     try {
-      await fetch('/api/logout', { method: 'POST' });
+      await fetch("/api/logout", { method: "POST" });
     } catch (e) {
       console.error("Server logout failed", e);
     }
     clearSession();
-    router.push('/login');
-    toast.success('Logged out successfully');
+    router.push("/login");
+    toast.success("Logged out successfully");
   };
 
   return {
