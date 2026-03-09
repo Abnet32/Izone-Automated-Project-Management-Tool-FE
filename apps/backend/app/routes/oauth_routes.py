@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request
 from fastapi.responses import RedirectResponse
-from app.oauth import oauth
-from app.auth_utils import create_jwt
+from app.auth.oauth import oauth
+from app.auth.auth_utils import create_jwt
 import os
 
 router = APIRouter()
