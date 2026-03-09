@@ -4,19 +4,28 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Eye, EyeOff, Github, Mail } from "lucide-react";
-import Image from "next/image";
+import { Eye, EyeOff, Github, Mail, Loader2 } from "lucide-react";
+
 import { loginSchema, type LoginFormData } from "@/lib/validations/auth";
 import { useAuth } from "@/hooks/use-auth";
-import { useRouter } from "next/navigation";
+
 export default function LoginPage() {
+  const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
   const [showPassword, setShowPassword] = useState(false);
+  const [oauthLoading, setOauthLoading] = useState<{ github: boolean; google: boolean }>({
+    github: false,
+    google: false,
+  });
   const { login, isLoading } = useAuth();
   const router = useRouter();
+
   const {
     register,
     handleSubmit,
@@ -27,25 +36,27 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      // Only email and password are sent
       await login({
         email: data.email,
         password: data.password,
       });
     } catch (error) {
-      // Error handled in useAuth
+      // handled in useAuth
     }
   };
 
   const handleClickSignUp = () => {
-    console.log("clickSignUp");
-    try {
-      router.push("/signup");
-      return true;
-    } catch (error) {
-      console.error("error in clickSignUp", error);
-      return false;
-    }
+    router.push("/signup");
+  };
+
+  const handleGithubLogin = () => {
+    setOauthLoading({ github: true, google: false });
+    window.location.href = `${base}/auth/github/login`;
+  };
+
+  const handleGoogleLogin = () => {
+    setOauthLoading({ github: false, google: true });
+    window.location.href = `${base}/auth/google/login`;
   };
 
   return (
@@ -75,6 +86,7 @@ export default function LoginPage() {
           </div>
 
           <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+            {/* Email Field */}
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -89,6 +101,7 @@ export default function LoginPage() {
               )}
             </div>
 
+            {/* Password Field */}
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <div className="relative">
@@ -111,12 +124,11 @@ export default function LoginPage() {
                 </Button>
               </div>
               {errors.password && (
-                <p className="text-sm text-red-500">
-                  {errors.password.message}
-                </p>
+                <p className="text-sm text-red-500">{errors.password.message}</p>
               )}
             </div>
 
+            {/* Remember & Forgot */}
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <Checkbox id="remember" />
@@ -132,42 +144,60 @@ export default function LoginPage() {
               </Link>
             </div>
 
+            {/* Sign In Button */}
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Signing in..." : "Sign In"}
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin mx-auto" />
+              ) : (
+                "Sign In"
+              )}
             </Button>
           </form>
 
-          <div className="relative my-6 flex items-center">
-            <div className="absolute left-0 right-0 top-1/2 h-px bg-border"></div>
-            <span className="relative px-4 bg-card text-sm text-muted-foreground">
-              or continue with
+          {/* Divider */}
+          <div className="flex items-center my-3">
+            <div className="flex-1 h-px bg-muted-foreground/40" />
+            <span className="mx-3 text-xs uppercase text-muted-foreground">
+              Or continue with
             </span>
+            <div className="flex-1 h-px bg-muted-foreground/40" />
           </div>
 
+          {/* OAuth Buttons */}
           <div className="grid grid-cols-2 gap-4">
             <Button
               variant="outline"
-              className="w-full flex items-center justify-center gap-2"
+              className="w-full flex items-center justify-center gap-2 cursor-pointer"
+              onClick={handleGithubLogin}
+              disabled={oauthLoading.github}
             >
-              <Github className="h-4 w-4" /> Github
+              {oauthLoading.github ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Github className="h-4 w-4" />
+              )}
+              Github
             </Button>
             <Button
               variant="outline"
-              className="w-full flex items-center justify-center gap-2"
-              onClick={() => {
-                const base =
-                  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-                window.location.href = `${base}/auth/google/login`;
-              }}
+              className="w-full flex items-center justify-center gap-2 cursor-pointer"
+              onClick={handleGoogleLogin}
+              disabled={oauthLoading.google}
             >
-              <Mail className="h-4 w-4" /> Google
+              {oauthLoading.google ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Mail className="h-4 w-4" />
+              )}
+              Google
             </Button>
           </div>
 
+          {/* Sign Up Link */}
           <div className="text-center text-sm mt-4">
             Don't have an account?{" "}
             <button
-              onClick={() => handleClickSignUp()}
+              onClick={handleClickSignUp}
               className="text-blue-600 hover:text-blue-700 hover:underline transition-colors cursor-pointer"
             >
               Sign up

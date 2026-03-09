@@ -13,6 +13,10 @@ from app.cards.routes import router as card_router
 from app.attachment.routes import router as attachment_router
 from .auth.google_auth import router as google_auth_router
 from app.time_entries.routes import router as time_entries_router
+from app.routes.oauth_routes import router as oauth_router
+from starlette.middleware.sessions import SessionMiddleware
+
+
 
 # Create all database tables
 Base.metadata.create_all(bind=engine)
@@ -20,6 +24,7 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI()
 
 setup_cors(app)
+app.add_middleware(SessionMiddleware, secret_key="YOUR_RANDOM_SECRET")
 
 
 app.include_router(auth_router)
@@ -34,6 +39,7 @@ app.include_router(card_router)
 app.include_router(attachment_router)
 app.include_router(google_auth_router)
 app.include_router(time_entries_router)
+app.include_router(oauth_router)
 
 
 @app.get("/")

@@ -19,8 +19,10 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export const BoardList = ({ boardId }: { boardId: string }) => {
+  // ✅ Fixed parenthesis
   const board = useBoardStore((state) =>
     state.boards.find(b => b.id === boardId)
+  );
   const deleteList = useBoardStore((state) => state.deleteList);
   const updateCard = useBoardStore((state) => state.updateCard);
   const duplicateCard = useBoardStore((state) => state.duplicateCard);
@@ -144,13 +146,3 @@ export const BoardList = ({ boardId }: { boardId: string }) => {
     </div>
   );
 };
-
-
-
-
-
-
-
-
-
-

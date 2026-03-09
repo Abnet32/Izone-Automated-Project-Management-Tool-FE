@@ -1,7 +1,6 @@
 import { AppSidebar } from "@/components/AppSidebar";
 import { Navbar } from "@/components/Navbar";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
-import AuthGuard from "@/components/AuthGuard";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -18,7 +17,6 @@ export default async function DashboardLayout({
   }
 
   return (
-    <AuthGuard>
       <SidebarProvider>
         <AppSidebar />
         <SidebarInset>
@@ -28,7 +26,6 @@ export default async function DashboardLayout({
           </div>
         </SidebarInset>
       </SidebarProvider>
-    </AuthGuard>
   );
 }
 
