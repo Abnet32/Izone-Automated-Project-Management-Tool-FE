@@ -19,6 +19,7 @@ SECRET_KEY = os.getenv("SECRET_KEY", "change_this_secret")
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 60))
 
+
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
@@ -66,19 +67,20 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     if subject is None:
         raise credentials_exception
 
-
-    user = db.query(User).filter(User.email == subject).first()
-    if user is None:
-        try:
+    try:
             user_id = UUID(subject)
             user = db.query(User).filter(User.id == user_id).first()
-        except (ValueError, TypeError):
+    except (ValueError, TypeError):
             user = None
+
+    if user is None:
+        user = db.query(User).filter(User.email == subject).first()
 
     if user is None:
         raise credentials_exception
 
     return user
+
 def create_invitation_token(
     workspace_id: str,
     invited_user_id: int | None = None, 
