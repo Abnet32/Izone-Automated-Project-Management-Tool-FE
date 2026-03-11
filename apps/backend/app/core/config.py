@@ -32,6 +32,10 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_ID: str
     GOOGLE_CLIENT_SECRET: str
 
+    # GitHub OAuth
+    GITHUB_CLIENT_ID: str
+    GITHUB_CLIENT_SECRET: str
+
     # Email
     MAIL_MAILER: str = "smtp"
     MAIL_HOST: str
