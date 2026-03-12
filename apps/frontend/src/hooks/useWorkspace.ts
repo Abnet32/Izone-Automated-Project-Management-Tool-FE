@@ -33,7 +33,7 @@ export const useWorkspaces = (): UseWorkspacesReturn => {
   const addWorkspaceToStore = useAppStore((state) => state.createWorkspace);
 
   // Local UI state
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [boardCounts, setBoardCounts] = useState<Record<string, number>>({});

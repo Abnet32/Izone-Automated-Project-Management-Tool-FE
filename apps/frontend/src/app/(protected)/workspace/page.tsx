@@ -33,11 +33,7 @@ export default function WorkspaceDetailPage() {
   useEffect(() => {
     // If workspace not found and we're not loading, try to reload
     if (!currentWorkspace && !workspaceLoading && workspaceId) {
-      const timer = setTimeout(() => {
-        reload();
-      }, 100);
-      
-      return () => clearTimeout(timer);
+      reload();
     }
   }, [currentWorkspace, workspaceLoading, workspaceId, reload]);
 
@@ -49,7 +45,7 @@ export default function WorkspaceDetailPage() {
     );
   }
 
-  if (workspaceError || !currentWorkspace) {
+  if (workspaceError || (!workspaceLoading && !currentWorkspace)) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -85,17 +81,17 @@ export default function WorkspaceDetailPage() {
         {/* Workspace Header */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
           <div className="p-6">
-            <h1 className="text-2xl font-bold text-gray-900">{currentWorkspace.name}</h1>
-            {currentWorkspace.description && (
+            <h1 className="text-2xl font-bold text-gray-900">{currentWorkspace?.name}</h1>
+            {currentWorkspace?.description && (
               <p className="text-gray-600 mt-2">{currentWorkspace.description}</p>
             )}
             <div className="flex items-center gap-6 text-sm text-gray-500 mt-4">
               <div>
-                Created: {new Date(currentWorkspace.created_at).toLocaleDateString()}
+                Created: {currentWorkspace?.createdAt ? new Date(currentWorkspace.createdAt).toLocaleDateString() : 'N/A'}
               </div>
               <div>
-                Updated: {currentWorkspace.updated_at ? 
-                  new Date(currentWorkspace.updated_at).toLocaleDateString() : 
+                Updated: {currentWorkspace?.updatedAt ? 
+                  new Date(currentWorkspace.updatedAt).toLocaleDateString() : 
                   'Never'
                 }
               </div>
@@ -166,7 +162,7 @@ export default function WorkspaceDetailPage() {
                       ))}
                     </div>
                     <div className="mt-4 text-xs text-gray-500">
-                      Updated {new Date(board.createdAt).toLocaleDateString()}
+                      Updated {board.updated_at ? new Date(board.updated_at).toLocaleDateString() : 'N/A'}
                     </div>
                   </div>
                 </Link>

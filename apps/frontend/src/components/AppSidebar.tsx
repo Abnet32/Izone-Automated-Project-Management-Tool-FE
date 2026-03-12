@@ -59,7 +59,7 @@ export const AppSidebar = () => {
                   width={26}
                   height={26}
                 />
-                <span className="font-semibold">Project Management</span>
+                <span className="font-semibold group-data-[collapsible=icon]:hidden">Project Management</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
