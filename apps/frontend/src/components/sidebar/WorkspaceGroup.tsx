@@ -33,7 +33,7 @@ export const WorkspaceGroup = () => {
 
   return (
     <div className="mb-6">
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex items-center justify-between mb-2 group-data-[collapsible=icon]:hidden">
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900 w-full"
@@ -69,7 +69,7 @@ export const WorkspaceGroup = () => {
       )}
 
       {isOpen && (
-        <div className="space-y-1 ml-6">
+        <div className="space-y-1 ml-6 group-data-[collapsible=icon]:ml-0">
           {loading ? (
             <div className="py-2 text-sm text-gray-500">Loading workspaces...</div>
           ) : error ? (
@@ -82,11 +82,11 @@ export const WorkspaceGroup = () => {
                 <SidebarMenuButton asChild className="group">
                   <Link href={`/workspace/${workspace.id}`}>
                     <Folder className="h-4 w-4 text-gray-400" />
-                    <span className="truncate">{workspace.name}</span>
+                    <span className="truncate group-data-[collapsible=icon]:hidden">{workspace.name}</span>
                     {workspace.description && (
-                      <span className="text-xs text-gray-400 truncate ml-2">- {workspace.description}</span>
+                      <span className="text-xs text-gray-400 truncate ml-2 group-data-[collapsible=icon]:hidden">- {workspace.description}</span>
                     )}
-                    <div className="ml-auto flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="ml-auto flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity group-data-[collapsible=icon]:hidden">
                       <div className="p-1 hover:bg-gray-200 rounded">
                         <Users className="h-3 w-3" />
                       </div>

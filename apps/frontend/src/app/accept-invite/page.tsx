@@ -7,7 +7,7 @@
 //  1. User clicks email button → lands here with ?token=...
 //  2. If NOT logged in  → redirect to /login?redirect=/accept-invite?token=...
 //  3. If logged  in     → call POST /workspaces/invitations/{token}/accept
-//  4. On success        → redirect to /workspaces/{workspace_id}
+//  4. On success        → redirect to /workspace/{workspace_id}
 //  5. On error          → show the error clearly
 
 import { useEffect, useState, Suspense } from 'react';
@@ -51,7 +51,7 @@ function AcceptInviteContent() {
                 setWorkspaceId(res.workspace_id);
                 setStage('success');
                 setTimeout(() => {
-                    router.push(`/workspaces/${res.workspace_id}`);
+                    router.push(`/workspace/${res.workspace_id}`);
                 }, 1800);
             })
             .catch((err) => {
@@ -65,7 +65,10 @@ function AcceptInviteContent() {
             <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes progress { from { width: 0% } to { width: 100% } }
-        @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes fadeUp { 
+          from { opacity: 0; transform: translateY(24px) scale(0.98); } 
+          to { opacity: 1; transform: translateY(0) scale(1); } 
+        }
         * { box-sizing: border-box; }
       `}</style>
 
@@ -87,8 +90,8 @@ function AcceptInviteContent() {
                 {/* NEEDS LOGIN */}
                 {stage === 'needs_login' && (
                     <div style={styles.body}>
-                        <div style={{ ...styles.iconCircle, borderColor: 'rgba(234,179,8,0.4)', background: 'rgba(234,179,8,0.1)' }}>
-                            <span style={{ fontSize: 30 }}>🔐</span>
+                        <div style={{ ...styles.iconCircle, borderColor: '#fef9c3', background: '#fefce8', color: '#854d0e' }}>
+                            <span style={{ fontSize: 32 }}>🔐</span>
                         </div>
                         <h2 style={styles.headline}>Login required</h2>
                         <p style={styles.sub}>Redirecting you to login first…<br />You'll be brought back automatically.</p>
@@ -99,14 +102,14 @@ function AcceptInviteContent() {
                 {/* SUCCESS */}
                 {stage === 'success' && (
                     <div style={styles.body}>
-                        <div style={{ ...styles.iconCircle, borderColor: 'rgba(34,197,94,0.4)', background: 'rgba(34,197,94,0.1)' }}>
-                            <span style={{ fontSize: 30 }}>🎉</span>
+                        <div style={{ ...styles.iconCircle, borderColor: '#dcfce7', background: '#f0fdf4', color: '#166534' }}>
+                            <span style={{ fontSize: 32 }}>🎉</span>
                         </div>
-                        <h2 style={{ ...styles.headline, color: '#4ade80' }}>Welcome aboard!</h2>
+                        <h2 style={{ ...styles.headline, color: '#10b981' }}>Welcome aboard!</h2>
                         <p style={styles.sub}>You've successfully joined the workspace.<br />Taking you there now…</p>
                         <div style={styles.progressBar}><div style={styles.progressFill} /></div>
                         {workspaceId && (
-                            <button style={styles.skipBtn} onClick={() => router.push(`/workspaces/${workspaceId}`)}>
+                            <button style={styles.skipBtn} onClick={() => router.push(`/workspace/${workspaceId}`)}>
                                 Go now →
                             </button>
                         )}
@@ -116,12 +119,12 @@ function AcceptInviteContent() {
                 {/* ERROR */}
                 {stage === 'error' && (
                     <div style={styles.body}>
-                        <div style={{ ...styles.iconCircle, borderColor: 'rgba(239,68,68,0.4)', background: 'rgba(239,68,68,0.1)' }}>
-                            <span style={{ fontSize: 30 }}>⚠️</span>
+                        <div style={{ ...styles.iconCircle, borderColor: '#fee2e2', background: '#fef2f2', color: '#991b1b' }}>
+                            <span style={{ fontSize: 32 }}>⚠️</span>
                         </div>
-                        <h2 style={{ ...styles.headline, color: '#f87171' }}>Something went wrong</h2>
+                        <h2 style={{ ...styles.headline, color: '#ef4444' }}>Something went wrong</h2>
                         <div style={styles.errorBox}>
-                            <p style={{ margin: 0, fontSize: 14, color: '#fca5a5' }}>{error}</p>
+                            <p style={{ margin: 0, fontSize: 14, color: '#b91c1c' }}>{error}</p>
                         </div>
                         <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
                             <button style={styles.secondaryBtn} onClick={() => router.push('/login')}>Go to Login</button>
@@ -138,118 +141,129 @@ function AcceptInviteContent() {
 const styles: Record<string, React.CSSProperties> = {
     page: {
         minHeight: '100vh',
-        background: 'linear-gradient(135deg,#0f0f1a 0%,#1a1a2e 50%,#16213e 100%)',
+        background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         padding: '40px 16px',
+        fontFamily: '"Inter", system-ui, -apple-system, sans-serif',
     },
     card: {
         width: '100%',
         maxWidth: 440,
-        background: 'linear-gradient(145deg,#1e1e35,#1a1a2e)',
-        border: '1px solid rgba(99,102,241,0.25)',
+        background: '#ffffff',
+        border: '1px solid #e2e8f0',
         borderRadius: 24,
-        boxShadow: '0 30px 60px rgba(0,0,0,0.6)',
+        boxShadow: '0 20px 50px rgba(0, 0, 0, 0.05)',
         overflow: 'hidden',
         textAlign: 'center',
-        animation: 'fadeUp 0.4s ease',
+        animation: 'fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
     },
     accentBar: {
-        height: 4,
-        background: 'linear-gradient(90deg,#6366f1,#8b5cf6,#06b6d4)',
+        height: 6,
+        background: 'linear-gradient(90deg, #6366f1, #8b5cf6, #3b82f6)',
     },
     logo: {
         display: 'inline-block',
-        margin: '24px auto 16px',
-        background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
-        borderRadius: 12,
-        padding: '8px 20px',
+        margin: '32px auto 16px',
+        background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+        borderRadius: 14,
+        padding: '10px 24px',
         color: '#fff',
         fontWeight: 800,
-        fontSize: 20,
+        fontSize: 22,
+        letterSpacing: '-0.02em',
+        boxShadow: '0 4px 12px rgba(79, 70, 229, 0.2)',
     },
     body: {
-        padding: '16px 36px 36px',
+        padding: '16px 40px 48px',
     },
     spinnerLarge: {
-        width: 56,
-        height: 56,
-        border: '4px solid rgba(99,102,241,0.2)',
+        width: 64,
+        height: 64,
+        border: '4px solid #f1f5f9',
         borderTop: '4px solid #6366f1',
         borderRadius: '50%',
-        animation: 'spin 0.9s linear infinite',
-        margin: '8px auto 20px',
+        animation: 'spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite',
+        margin: '16px auto 24px',
     },
     iconCircle: {
-        width: 72,
-        height: 72,
-        border: '2px solid rgba(99,102,241,0.4)',
-        background: 'rgba(99,102,241,0.15)',
+        width: 80,
+        height: 80,
+        border: '2px solid #f1f5f9',
+        background: '#f8fafc',
         borderRadius: '50%',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        margin: '8px auto 20px',
+        margin: '16px auto 24px',
+        boxShadow: '0 8px 16px rgba(0, 0, 0, 0.02)',
     },
     headline: {
-        fontSize: 24,
+        fontSize: 26,
         fontWeight: 800,
-        color: '#f1f5f9',
-        margin: '0 0 8px',
+        color: '#0f172a',
+        margin: '0 0 12px',
+        letterSpacing: '-0.02em',
     },
     sub: {
-        fontSize: 14,
-        color: '#94a3b8',
-        lineHeight: 1.7,
-        marginBottom: 20,
+        fontSize: 15,
+        color: '#475569',
+        lineHeight: 1.6,
+        marginBottom: 32,
     },
     progressBar: {
-        height: 4,
-        background: 'rgba(99,102,241,0.15)',
-        borderRadius: 4,
+        height: 6,
+        background: '#f1f5f9',
+        borderRadius: 6,
         overflow: 'hidden',
-        marginBottom: 20,
+        marginBottom: 24,
     },
     progressFill: {
         height: '100%',
-        background: 'linear-gradient(90deg,#22c55e,#4ade80)',
-        animation: 'progress 1.8s linear forwards',
+        background: 'linear-gradient(90deg, #6366f1, #3b82f6)',
+        animation: 'progress 2s linear forwards',
     },
     errorBox: {
-        background: 'rgba(239,68,68,0.1)',
-        border: '1px solid rgba(239,68,68,0.25)',
-        borderRadius: 10,
-        padding: '12px 16px',
-        marginBottom: 20,
+        background: '#fef2f2',
+        border: '1px solid #fee2e2',
+        borderRadius: 12,
+        padding: '16px',
+        marginBottom: 32,
     },
     primaryBtn: {
-        background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
+        background: '#0f172a',
         color: '#fff',
         border: 'none',
-        borderRadius: 10,
-        padding: '10px 24px',
-        fontSize: 14,
-        fontWeight: 700,
+        borderRadius: 12,
+        padding: '12px 28px',
+        fontSize: 15,
+        fontWeight: 600,
         cursor: 'pointer',
+        transition: 'all 0.2s ease',
+        boxShadow: '0 4px 10px rgba(15, 23, 42, 0.1)',
     },
     secondaryBtn: {
-        background: 'none',
-        border: '1px solid rgba(99,102,241,0.3)',
-        color: '#94a3b8',
-        borderRadius: 10,
-        padding: '10px 24px',
-        fontSize: 14,
+        background: '#fff',
+        border: '1px solid #e2e8f0',
+        color: '#475569',
+        borderRadius: 12,
+        padding: '12px 28px',
+        fontSize: 15,
+        fontWeight: 600,
         cursor: 'pointer',
+        transition: 'all 0.2s ease',
     },
     skipBtn: {
         background: 'none',
         border: 'none',
-        color: '#4ade80',
-        fontSize: 14,
+        color: '#6366f1',
+        fontSize: 15,
         fontWeight: 600,
         cursor: 'pointer',
-        textDecoration: 'underline',
+        textDecoration: 'none',
+        marginTop: 16,
+        display: 'inline-block',
     },
 };
 
