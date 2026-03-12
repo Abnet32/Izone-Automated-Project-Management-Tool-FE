@@ -12,6 +12,7 @@ class RoleEnum(str, Enum):
     owner  = "owner"
     member = "member"
     admin  = "admin"
+    guest  = "guest"
 
 RoleEnum.__pydantic_json_schema__ = lambda source, handler: handler(str)
 RoleEnum.__get_pydantic_core_schema__ = lambda source, handler: handler(str)
@@ -59,6 +60,8 @@ class MemberAdd(BaseModel):
 
 
 class MemberOut(BaseModel):
+    id: UUID
+    workspace_id: UUID
     user_id: UUID
     email: Optional[str] = None
     role: RoleEnum

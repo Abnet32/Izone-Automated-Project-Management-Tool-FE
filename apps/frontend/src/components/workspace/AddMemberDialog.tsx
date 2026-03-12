@@ -22,13 +22,15 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import type { RoleEnum } from "@/types/member";
+import { workspaceAPI } from "@/lib/api/workspaces"; // import the API
 
 interface AddMemberDialogProps {
-    onAddMember: (userId: string, role: RoleEnum) => Promise<void>;
-    isLoading?: boolean;
+    workspaceId: string;
+    onSuccess?: () => void;
+    onAddMember?: (email: string, role: RoleEnum) => Promise<void>;
 }
 
-export function AddMemberDialog({ onAddMember, isLoading = false }: AddMemberDialogProps) {
+export function AddMemberDialog({ workspaceId, onSuccess, onAddMember }: AddMemberDialogProps) {
     const [open, setOpen] = useState(false);
     const [email, setEmail] = useState("");
     const [role, setRole] = useState<RoleEnum>("member");
@@ -44,7 +46,6 @@ export function AddMemberDialog({ onAddMember, isLoading = false }: AddMemberDia
             return;
         }
 
-        // Basic Email validation
         const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailPattern.test(email.trim())) {
             setError("Please enter a valid email address");
@@ -53,12 +54,28 @@ export function AddMemberDialog({ onAddMember, isLoading = false }: AddMemberDia
 
         setSubmitting(true);
         try {
-            await (onAddMember as any)(email.trim(), role);
+            if (onAddMember) {
+                // If parent provided a handler (like inviteService), use it
+                await onAddMember(email.trim(), role);
+            } else {
+                // Default fallback to the API method
+                await workspaceAPI.addMember(workspaceId, { email: email.trim(), role });
+            }
+
+            // Reset form after successful submission
             setEmail("");
             setRole("member");
             setOpen(false);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : "Failed to add member");
+
+            // ✅ optional callback to refresh members list
+            onSuccess?.();
+        } catch (err: any) {
+            // ✅ Extract backend error message
+            if (err instanceof Error) {
+                setError(err.message); // show exact error from API
+            } else {
+                setError("Failed to add member");
+            }
         } finally {
             setSubmitting(false);
         }
@@ -106,13 +123,13 @@ export function AddMemberDialog({ onAddMember, isLoading = false }: AddMemberDia
                                 <SelectContent>
                                     <SelectItem value="member">Member - Can view and edit</SelectItem>
                                     <SelectItem value="admin">Admin - Can manage members</SelectItem>
-                                    <SelectItem value="owner">Owner - Full control</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
 
                         {error && (
                             <div className="p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm">
+                                {/* ✅ Show exact backend error here */}
                                 {error}
                             </div>
                         )}
@@ -127,7 +144,7 @@ export function AddMemberDialog({ onAddMember, isLoading = false }: AddMemberDia
                         >
                             Cancel
                         </Button>
-                        <Button type="submit" disabled={submitting || isLoading}>
+                        <Button type="submit" disabled={submitting}>
                             {submitting ? "Adding..." : "Add Member"}
                         </Button>
                     </DialogFooter>
