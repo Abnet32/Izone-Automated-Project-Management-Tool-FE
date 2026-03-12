@@ -52,7 +52,7 @@ export default function WorkspaceDetailPage() {
     );
   }
 
-  if (error || !currentWorkspace) {
+  if (error || (!loading && !currentWorkspace)) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -92,19 +92,19 @@ export default function WorkspaceDetailPage() {
         <div className="bg-card rounded-lg shadow-sm border border-border mb-6">
           <div className="p-6">
             <h1 className="text-2xl font-bold text-foreground">
-              {currentWorkspace.name}
+              {currentWorkspace?.name}
             </h1>
 
-            {currentWorkspace.description && (
+            {currentWorkspace?.description && (
               <p className="text-muted-foreground mt-2">{currentWorkspace.description}</p>
             )}
 
             <div className="flex items-center gap-6 text-sm text-muted-foreground mt-4">
               <div>
-                Created: {new Date(currentWorkspace.createdAt).toLocaleDateString()}
+                Created: {currentWorkspace?.createdAt ? new Date(currentWorkspace.createdAt).toLocaleDateString() : 'N/A'}
               </div>
               <div>
-                Updated: {currentWorkspace.updatedAt ?
+                Updated: {currentWorkspace?.updatedAt ?
                   new Date(currentWorkspace.updatedAt).toLocaleDateString() : 'Never'}
               </div>
               <Link
