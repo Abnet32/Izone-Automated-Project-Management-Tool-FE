@@ -159,7 +159,11 @@ export default function WorkspaceMembersPage() {
                                 Refresh
                             </Button>
                             {isAdmin && (
-                                <AddMemberDialog onAddMember={handleAddMember} />
+                                <AddMemberDialog
+                                    workspaceId={workspaceId}
+                                    onAddMember={handleAddMember}
+                                    onSuccess={fetchData}
+                                />
                             )}
                         </div>
                     </div>

@@ -54,17 +54,6 @@ def is_member(db: Session, workspace_id: UUID, user_id: UUID) -> bool:
     ).first()
     return member is not None
 
-
-def is_guest(db: Session, workspace_id: UUID, user_id: UUID) -> bool:
-
-    member = db.query(WorkspaceMember).filter(
-        WorkspaceMember.workspace_id == workspace_id,
-        WorkspaceMember.user_id == user_id,
-        WorkspaceMember.role == RoleEnum.guest
-    ).first()
-    return member is not None
-
-
 def get_member_role(db: Session, workspace_id: UUID, user_id: UUID) -> RoleEnum | None:
  
     member = db.query(WorkspaceMember).filter(
@@ -76,6 +65,12 @@ def get_member_role(db: Session, workspace_id: UUID, user_id: UUID) -> RoleEnum 
 
 
 def create_workspace(db: Session, data: WorkspaceCreate, current_user_id: UUID) -> Workspace:
+   
+    existing_member = db.query(WorkspaceMember).filter(
+        WorkspaceMember.user_id == current_user_id
+    ).first()
+    if existing_member:
+        raise HTTPException(status_code=403, detail="You are already a member of a workspace and cannot create a new one")
 
     ws = Workspace(
         name=data.name,
@@ -84,7 +79,7 @@ def create_workspace(db: Session, data: WorkspaceCreate, current_user_id: UUID) 
         created_by=current_user_id
     )
     db.add(ws)
-    db.flush() 
+    db.flush()
 
    
     db.add(WorkspaceMember(
@@ -153,17 +148,12 @@ def add_member(db: Session, workspace_id: UUID, data: MemberAdd, requester_id: U
 
     if member:
         member.role = data.role
-        db.commit()
-        db.refresh(member)
-        member.email = user.email  
-        return member
-
- 
-    member = WorkspaceMember(
-        workspace_id=workspace_id,
-        user_id=user.id,
-        role=data.role
-    )
+    else:
+        member = WorkspaceMember(
+            workspace_id=workspace_id,
+            user_id=user.id,
+            role=data.role
+        )
     db.add(member)
     db.commit()
     db.refresh(member)
@@ -181,8 +171,14 @@ def get_members_with_details(db: Session, workspace_id: UUID) -> list:
 
     output = []
     for member, email in results:
-        member.email = email  
-        output.append(member)
+        output.append({
+            "id": member.id,
+            "workspace_id": member.workspace_id,
+            "user_id": member.user_id,
+            "role": member.role,
+            "email": email,
+            "created_at": member.created_at
+        })
     return output
 
 

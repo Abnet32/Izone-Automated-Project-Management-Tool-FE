@@ -84,5 +84,37 @@ export const workspaceAPI = {
       console.error("Error fetching workspace by ID:", error);
       throw error;
     }
+  },
+
+  async addMember(workspaceId: string, payload: { email: string; role: string }): Promise<any> {
+    try {
+      const res = await fetch(`${API_BASE_URL}/workspaces/${workspaceId}/invite`, {
+        method: "POST",
+        headers: getHeaders(),
+        body: JSON.stringify(payload),
+      });
+
+      if (res.status === 401) {
+        localStorage.removeItem("auth_token");
+        throw new Error("Session expired. Please login again.");
+      }
+
+      if (!res.ok) {
+        let errorMessage = "Failed to add member";
+        try {
+          const errorData = await res.json();
+          errorMessage = errorData.detail || errorMessage;
+        } catch (e) {
+          const text = await res.text();
+          errorMessage = text || errorMessage;
+        }
+        throw new Error(errorMessage);
+      }
+
+      return res.json();
+    } catch (error) {
+      console.error("Error adding member:", error);
+      throw error;
+    }
   }
 };
